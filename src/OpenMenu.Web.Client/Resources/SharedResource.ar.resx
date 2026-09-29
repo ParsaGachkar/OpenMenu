@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccessDenied" xml:space="preserve">
+    <value>تم رفض الوصول</value>
+  </data>
+  <data name="AccessDeniedMessage" xml:space="preserve">
+    <value>ليس لديك إذن لعرض هذه الصفحة.</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>نشط</value>
+  </data>
+  <data name="AddTo" xml:space="preserve">
+    <value>إضافة إلى {0}</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>متوفر</value>
+  </data>
+  <data name="BackToCategories" xml:space="preserve">
+    <value>العودة إلى الفئات</value>
+  </data>
+  <data name="BackToMenu" xml:space="preserve">
+    <value>العودة إلى القائمة</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="Categories" xml:space="preserve">
+    <value>الفئات</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>الفئة</value>
+  </data>
+  <data name="CategoryNotFound" xml:space="preserve">
+    <value>الفئة غير موجودة.</value>
+  </data>
+  <data name="CategoryRequired" xml:space="preserve">
+    <value>يرجى اختيار فئة.</value>
+  </data>
+  <data name="ChooseCategory" xml:space="preserve">
+    <value>اختر فئة…</value>
+  </data>
+  <data name="ConfirmDeleteCategory" xml:space="preserve">
+    <value>حذف هذه الفئة وجميع عناصرها؟</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>حذف عنصر القائمة هذا؟</value>
+  </data>
+  <data name="CreateOneFirst" xml:space="preserve">
+    <value>أنشئ فئة أولاً</value>
+  </data>
+  <data name="Currency" xml:space="preserve">
+    <value>العملة</value>
+  </data>
+  <data name="CurrencyHint" xml:space="preserve">
+    <value>رمز ISO 4217، مثل USD أو IRR.</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>لوحة التحكم</value>
+  </data>
+  <data name="DashboardAdminHint" xml:space="preserve">
+    <value>الإعدادات وإدارة المستخدمين متاحة للمديرين فقط.</value>
+  </data>
+  <data name="DashboardMenuHint" xml:space="preserve">
+    <value>أدر قائمتك من صفحتي القائمة والفئات.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>حذف</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>الوصف</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>معطّل</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>تعديل</value>
+  </data>
+  <data name="EditCategory" xml:space="preserve">
+    <value>تعديل الفئة</value>
+  </data>
+  <data name="EditItem" xml:space="preserve">
+    <value>تعديل عنصر القائمة</value>
+  </data>
+  <data name="ErrorMessage" xml:space="preserve">
+    <value>حدث خطأ أثناء معالجة طلبك.</value>
+  </data>
+  <data name="ErrorTitle" xml:space="preserve">
+    <value>حدث خطأ ما</value>
+  </data>
+  <data name="FieldRequired" xml:space="preserve">
+    <value>هذا الحقل مطلوب.</value>
+  </data>
+  <data name="FieldTooLong" xml:space="preserve">
+    <value>هذه القيمة طويلة جدًا.</value>
+  </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>مخفي</value>
+  </data>
+  <data name="ImageUrl" xml:space="preserve">
+    <value>رابط الصورة</value>
+  </data>
+  <data name="InvalidUsernameOrPassword" xml:space="preserve">
+    <value>اسم المستخدم أو كلمة المرور غير صحيحة.</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>العناصر</value>
+  </data>
+  <data name="ItemNotFound" xml:space="preserve">
+    <value>عنصر القائمة غير موجود.</value>
+  </data>
+  <data name="LoginHeading" xml:space="preserve">
+    <value>تسجيل دخول الموظفين</value>
+  </data>
+  <data name="LogoUrl" xml:space="preserve">
+    <value>رابط الشعار</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>تسجيل الخروج</value>
+  </data>
+  <data name="Menu" xml:space="preserve">
+    <value>القائمة</value>
+  </data>
+  <data name="MenuItems" xml:space="preserve">
+    <value>عناصر القائمة</value>
+  </data>
+  <data name="MenuItemsStat" xml:space="preserve">
+    <value>عناصر القائمة</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="NewCategory" xml:space="preserve">
+    <value>فئة جديدة</value>
+  </data>
+  <data name="NewItem" xml:space="preserve">
+    <value>عنصر جديد</value>
+  </data>
+  <data name="NoCategories" xml:space="preserve">
+    <value>لا توجد فئات بعد. أنشئ أول فئة لتبدأ ببناء القائمة.</value>
+  </data>
+  <data name="NoCategoriesAvailable" xml:space="preserve">
+    <value>لا توجد فئات متاحة</value>
+  </data>
+  <data name="NoCategoriesForItems" xml:space="preserve">
+    <value>لا توجد فئات بعد. أنشئ فئة أولاً — كل عنصر قائمة ينتمي إلى فئة.</value>
+  </data>
+  <data name="NoItemsInCategory" xml:space="preserve">
+    <value>لا توجد عناصر في هذه الفئة.</value>
+  </data>
+  <data name="NoSettingsWarning" xml:space="preserve">
+    <value>لم يتم العثور على إعدادات المطعم. شغّل التطبيق مرة واحدة مع تمكين البيانات الأولية.</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>الترتيب</value>
+  </data>
+  <data name="OrderRange" xml:space="preserve">
+    <value>يجب أن يكون الترتيب بين 0 و 9999.</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>كلمة المرور</value>
+  </data>
+  <data name="PoweredByOpenMenu" xml:space="preserve">
+    <value>مدعوم بـ OpenMenu</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>السعر</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>الدور</value>
+  </data>
+  <data name="PriceRange" xml:space="preserve">
+    <value>يجب أن يكون السعر بين 0 و 9,999,999.99.</value>
+  </data>
+  <data name="RestaurantSettings" xml:space="preserve">
+    <value>إعدادات المطعم</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>حفظ</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>الإعدادات</value>
+  </data>
+  <data name="SettingsDescription" xml:space="preserve">
+    <value>الوصف</value>
+  </data>
+  <data name="SettingsHint" xml:space="preserve">
+    <value>تظهر هذه القيم في القائمة العامة.</value>
+  </data>
+  <data name="SettingsName" xml:space="preserve">
+    <value>اسم المطعم</value>
+  </data>
+  <data name="SettingsSaved" xml:space="preserve">
+    <value>تم حفظ الإعدادات.</value>
+  </data>
+  <data name="SignIn" xml:space="preserve">
+    <value>تسجيل الدخول</value>
+  </data>
+  <data name="SoldOut" xml:space="preserve">
+    <value>نفدت الكمية</value>
+  </data>
+  <data name="StaffLogin" xml:space="preserve">
+    <value>دخول الموظفين</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>السمة</value>
+  </data>
+  <data name="UnauthorizedUsersNote" xml:space="preserve">
+    <value>لا يتم عرض تجزئات كلمات المرور مطلقًا. إنشاء المستخدمين وتعديلهم وحذفهم يُنفَّذ على هذا الأساس.</value>
+  </data>
+  <data name="UserManagement" xml:space="preserve">
+    <value>إدارة المستخدمين</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>اسم المستخدم</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>المستخدمون</value>
+  </data>
+  <data name="Visible" xml:space="preserve">
+    <value>ظاهر</value>
+  </data>
+  <data name="VisibleOnPublicMenu" xml:space="preserve">
+    <value>ظاهر في القائمة العامة</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>نعم</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>تنشيط</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>تعطيل</value>
+  </data>
+  <data name="NewUser" xml:space="preserve">
+    <value>مستخدم جديد</value>
+  </data>
+  <data name="CreateUser" xml:space="preserve">
+    <value>إنشاء مستخدم</value>
+  </data>
+</root>

@@ -1,0 +1,188 @@
+@page "/admin/users"
+@attribute [Authorize(Roles = "Admin")]
+@layout Layout.AdminLayout
+@rendermode InteractiveAuto
+@inject IAdminApi Api
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>Users</PageTitle>
+
+<h1 class="text-2xl font-bold mb-6">@(L["Users"])</h1>
+
+@if (_users is null)
+{
+    <span class="loading loading-dots loading-md"></span>
+    return;
+}
+
+<div class="grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 overflow-x-auto">
+        <table class="table table-zebra bg-base-200 rounded-box">
+            <thead>
+                <tr>
+                    <th>@(L["Username"])</th>
+                    <th>@(L["Role"])</th>
+                    <th>@(L["Status"])</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in _users)
+                {
+                    <tr>
+                        <td>@user.Username</td>
+                        <td>
+                            <select class="select select-bordered select-xs" value="@user.Role.ToString()" @onchange="e => ChangeRoleAsync(user, e)">
+                                <option value="Admin">Admin</option>
+                                <option value="Editor">Editor</option>
+                            </select>
+                        </td>
+                        <td>
+                            <span class="badge @(user.IsActive ? "badge-success" : "badge-ghost")">
+                                @(user.IsActive ? L["Active"].Value : L["Disabled"].Value)
+                            </span>
+                        </td>
+                        <td class="text-right">
+                            <button class="btn btn-ghost btn-xs" @onclick="() => ToggleActiveAsync(user)">
+                                @(user.IsActive ? L["Disable"].Value : L["Enable"].Value)
+                            </button>
+                            <button class="btn btn-ghost btn-xs" @onclick="() => BeginPasswordReset(user)">Password</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card bg-base-200 shadow-md self-start">
+        <div class="card-body gap-3">
+            <h2 class="card-title text-base">@(L["NewUser"])</h2>
+            @if (_error is not null)
+            {
+                <div role="alert" class="alert alert-error text-sm py-2"><span>@_error</span></div>
+            }
+            <label class="form-control w-full">
+                <span class="label-text mb-1">@(L["Username"])</span>
+                <InputText @bind-Value="_newUser.Username" class="input input-bordered w-full" maxlength="64" />
+            </label>
+            <label class="form-control w-full">
+                <span class="label-text mb-1">Password (min 8 chars)</span>
+                <InputText type="password" @bind-Value="_newUser.Password" class="input input-bordered w-full" autocomplete="new-password" />
+            </label>
+            <label class="form-control w-full">
+                <span class="label-text mb-1">@(L["Role"])</span>
+                <InputSelect @bind-Value="_newUser.Role" class="select select-bordered w-full">
+                    <option value="Editor">Editor</option>
+                    <option value="Admin">Admin</option>
+                </InputSelect>
+            </label>
+            <button class="btn btn-primary btn-sm" disabled="@_creating" @onclick="CreateUserAsync">@(L["CreateUser"])</button>
+        </div>
+    </div>
+</div>
+
+@if (_passwordFor is not null)
+{
+    <div class="modal modal-open">
+        <div class="modal-box max-w-sm">
+            <h3 class="font-bold">Set password for @_passwordFor.Username</h3>
+            <label class="form-control w-full mt-4">
+                <span class="label-text mb-1">New password (min 8 chars)</span>
+                <InputText type="password" @bind-Value="_newPassword" class="input input-bordered w-full" autocomplete="new-password" />
+            </label>
+            <div class="modal-action">
+                <button class="btn btn-ghost" @onclick="() => _passwordFor = null">@(L["Cancel"])</button>
+                <button class="btn btn-primary" @onclick="SavePasswordAsync">@(L["Save"])</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private UserOutputDto[]? _users;
+    private NewUserModel _newUser = new();
+    private string? _error;
+    private bool _creating;
+    private UserOutputDto? _passwordFor;
+    private string _newPassword = string.Empty;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync() =>
+        _users = await Api.GetUsersAsync();
+
+    private async Task CreateUserAsync()
+    {
+        _error = null;
+        _creating = true;
+        try
+        {
+            var result = await Api.CreateUserAsync(new UserInput(_newUser.Username, _newUser.Password, _newUser.Role));
+            if (result.Success)
+            {
+                _newUser = new NewUserModel();
+                await LoadAsync();
+            }
+            else
+            {
+                _error = result.Error;
+            }
+        }
+        finally
+        {
+            _creating = false;
+        }
+    }
+
+    private async Task ChangeRoleAsync(UserOutputDto user, ChangeEventArgs e)
+    {
+        if (!Enum.TryParse<UserRole>(e.Value?.ToString(), out var role))
+        {
+            return;
+        }
+
+        await Api.UpdateUserAsync(user.Id, new UserUpdateInput(role, user.IsActive));
+        await LoadAsync();
+    }
+
+    private async Task ToggleActiveAsync(UserOutputDto user)
+    {
+        await Api.UpdateUserAsync(user.Id, new UserUpdateInput(user.Role, !user.IsActive));
+        await LoadAsync();
+    }
+
+    private void BeginPasswordReset(UserOutputDto user)
+    {
+        _passwordFor = user;
+        _newPassword = string.Empty;
+    }
+
+    private async Task SavePasswordAsync()
+    {
+        if (_passwordFor is null)
+        {
+            return;
+        }
+
+        var result = await Api.SetUserPasswordAsync(_passwordFor.Id, _newPassword);
+        if (result.Success)
+        {
+            _passwordFor = null;
+        }
+        else
+        {
+            _error = result.Error;
+        }
+    }
+
+    private sealed class NewUserModel
+    {
+        [Required, StringLength(64)]
+        public string Username { get; set; } = string.Empty;
+
+        [Required, MinLength(8)]
+        public string Password { get; set; } = string.Empty;
+
+        public UserRole Role { get; set; } = UserRole.Editor;
+    }
+}

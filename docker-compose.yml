@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: openmenu
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      # postgres:18+ layout: mount at /var/lib/postgresql so data lives in a versioned subdir
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d openmenu"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - app-keys:/app/keys
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_DETAILEDERRORS: "true"
+      ConnectionStrings__Default: Host=db;Port=5432;Database=openmenu;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
+      Seed__AdminUsername: ${OPENMENU_ADMIN_USERNAME:-admin}
+      Seed__AdminPassword: ${OPENMENU_ADMIN_PASSWORD:-admin123}
+      Seed__DemoData: ${OPENMENU_SEED_DEMO_DATA:-true}
+    ports:
+      - "${APP_PORT:-8088}:8080"
+
+volumes:
+  postgres-data:
+  app-keys:

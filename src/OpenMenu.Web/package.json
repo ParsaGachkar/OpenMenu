@@ -1,0 +1,12 @@
+{
+  "name": "openmenu.web",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./wwwroot/app.css -o ./wwwroot/css/app.min.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "daisyui": "^5.7.42",
+    "tailwindcss": "^4.3.3"
+  }
+}

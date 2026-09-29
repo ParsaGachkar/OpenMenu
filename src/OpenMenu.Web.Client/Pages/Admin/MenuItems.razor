@@ -1,0 +1,87 @@
+@page "/admin/menu"
+@attribute [Authorize]
+@layout Layout.AdminLayout
+@rendermode InteractiveAuto
+@inject IAdminApi Api
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>Menu items</PageTitle>
+
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">@(L["MenuItems"])</h1>
+    <NavLink href="/admin/menu/new" class="btn btn-primary btn-sm">@(L["NewItem"])</NavLink>
+</div>
+
+@if (_items is null || _categories is null)
+{
+    <span class="loading loading-dots loading-md"></span>
+}
+else if (_items.Length == 0)
+{
+    <div class="alert"><span>No menu items yet. Create one.</span></div>
+}
+else
+{
+    @foreach (var category in _categories)
+    {
+        var items = _items.Where(i => i.CategoryId == category.Id).ToArray();
+        <h2 class="text-lg font-semibold mt-6 mb-2">@category.Name</h2>
+        <table class="table table-zebra bg-base-200 rounded-box">
+            <thead>
+                <tr>
+                    <th>@(L["Name"])</th>
+                    <th>@(L["Price"])</th>
+                    <th>@(L["Order"])</th>
+                    <th>@(L["Available"])</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (items.Length == 0)
+                {
+                    <tr><td colspan="5" class="opacity-50">No items</td></tr>
+                }
+                @foreach (var item in items)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td>@item.Price.ToString("N2") @Currency</td>
+                        <td>@item.SortOrder</td>
+                        <td>@(item.IsAvailable ? L["Yes"].Value : L["No"].Value)</td>
+                        <td class="text-right">
+                            <NavLink href="@($"admin/menu/{item.Id}/edit")" class="btn btn-ghost btn-xs">@(L["Edit"])</NavLink>
+                            <button class="btn btn-error btn-xs" @onclick="() => DeleteAsync(item)">@(L["Delete"])</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    private OpenMenu.Domain.MenuItem[]? _items;
+    private OpenMenu.Domain.CategoryDto[]? _categories;
+    private string Currency = "USD";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _items = await Api.GetMenuItemsAsync();
+        _categories = await Api.GetCategoriesAsync();
+        var settings = await Api.GetPublicSettingsAsync();
+        Currency = settings?.Currency ?? "USD";
+    }
+
+    private async Task DeleteAsync(OpenMenu.Domain.MenuItem item)
+    {
+        if ((await Api.DeleteMenuItemAsync(item.Id)).Success)
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        _items = await Api.GetMenuItemsAsync();
+    }
+}

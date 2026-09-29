@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccessDenied" xml:space="preserve">
+    <value>Access denied</value>
+  </data>
+  <data name="AccessDeniedMessage" xml:space="preserve">
+    <value>You don't have permission to view this page.</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="AddTo" xml:space="preserve">
+    <value>Add to {0}</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="BackToCategories" xml:space="preserve">
+    <value>Back to categories</value>
+  </data>
+  <data name="BackToMenu" xml:space="preserve">
+    <value>Back to menu</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Categories" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="CategoryNotFound" xml:space="preserve">
+    <value>Category not found.</value>
+  </data>
+  <data name="CategoryRequired" xml:space="preserve">
+    <value>Please choose a category.</value>
+  </data>
+  <data name="ChooseCategory" xml:space="preserve">
+    <value>Choose a category…</value>
+  </data>
+  <data name="ConfirmDeleteCategory" xml:space="preserve">
+    <value>Delete this category and all its items?</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>Delete this menu item?</value>
+  </data>
+  <data name="CreateOneFirst" xml:space="preserve">
+    <value>Create one first</value>
+  </data>
+  <data name="Currency" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="CurrencyHint" xml:space="preserve">
+    <value>ISO 4217 code, e.g. USD, IRR.</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="DashboardAdminHint" xml:space="preserve">
+    <value>Settings and user management are available to Admins.</value>
+  </data>
+  <data name="DashboardMenuHint" xml:space="preserve">
+    <value>Manage your menu from the Menu and Categories pages.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="EditCategory" xml:space="preserve">
+    <value>Edit category</value>
+  </data>
+  <data name="EditItem" xml:space="preserve">
+    <value>Edit menu item</value>
+  </data>
+  <data name="ErrorMessage" xml:space="preserve">
+    <value>An error occurred while processing your request.</value>
+  </data>
+  <data name="ErrorTitle" xml:space="preserve">
+    <value>Something went wrong</value>
+  </data>
+  <data name="FieldRequired" xml:space="preserve">
+    <value>This field is required.</value>
+  </data>
+  <data name="FieldTooLong" xml:space="preserve">
+    <value>This value is too long.</value>
+  </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>Hidden</value>
+  </data>
+  <data name="ImageUrl" xml:space="preserve">
+    <value>Image URL</value>
+  </data>
+  <data name="InvalidUsernameOrPassword" xml:space="preserve">
+    <value>Invalid username or password.</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>Items</value>
+  </data>
+  <data name="ItemNotFound" xml:space="preserve">
+    <value>Menu item not found.</value>
+  </data>
+  <data name="LoginHeading" xml:space="preserve">
+    <value>Staff sign in</value>
+  </data>
+  <data name="LogoUrl" xml:space="preserve">
+    <value>Logo URL</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Logout</value>
+  </data>
+  <data name="Menu" xml:space="preserve">
+    <value>Menu</value>
+  </data>
+  <data name="MenuItems" xml:space="preserve">
+    <value>Menu items</value>
+  </data>
+  <data name="MenuItemsStat" xml:space="preserve">
+    <value>Menu items</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="NewCategory" xml:space="preserve">
+    <value>New category</value>
+  </data>
+  <data name="NewItem" xml:space="preserve">
+    <value>New item</value>
+  </data>
+  <data name="NoCategories" xml:space="preserve">
+    <value>No categories yet. Create your first category to start building the menu.</value>
+  </data>
+  <data name="NoCategoriesAvailable" xml:space="preserve">
+    <value>No categories available</value>
+  </data>
+  <data name="NoCategoriesForItems" xml:space="preserve">
+    <value>No categories yet. Create a category first — menu items always belong to a category.</value>
+  </data>
+  <data name="NoItemsInCategory" xml:space="preserve">
+    <value>No items in this category.</value>
+  </data>
+  <data name="NoSettingsWarning" xml:space="preserve">
+    <value>No restaurant settings found. Start the app once with seeding enabled.</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="OrderRange" xml:space="preserve">
+    <value>Order must be between 0 and 9999.</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="PoweredByOpenMenu" xml:space="preserve">
+    <value>Powered by OpenMenu</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Role</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="PriceRange" xml:space="preserve">
+    <value>Price must be between 0 and 9,999,999.99.</value>
+  </data>
+  <data name="RestaurantSettings" xml:space="preserve">
+    <value>Restaurant settings</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SettingsDescription" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="SettingsHint" xml:space="preserve">
+    <value>These values appear on the public menu.</value>
+  </data>
+  <data name="SettingsName" xml:space="preserve">
+    <value>Restaurant name</value>
+  </data>
+  <data name="SettingsSaved" xml:space="preserve">
+    <value>Settings saved.</value>
+  </data>
+  <data name="SignIn" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="SoldOut" xml:space="preserve">
+    <value>Sold out</value>
+  </data>
+  <data name="StaffLogin" xml:space="preserve">
+    <value>Staff login</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="UnauthorizedUsersNote" xml:space="preserve">
+    <value>Password hashes are never displayed. Creating, editing and deleting users is implemented on this foundation.</value>
+  </data>
+  <data name="UserManagement" xml:space="preserve">
+    <value>User management</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="Visible" xml:space="preserve">
+    <value>Visible</value>
+  </data>
+  <data name="VisibleOnPublicMenu" xml:space="preserve">
+    <value>Visible on public menu</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="NewUser" xml:space="preserve">
+    <value>New user</value>
+  </data>
+  <data name="CreateUser" xml:space="preserve">
+    <value>Create user</value>
+  </data>
+</root>

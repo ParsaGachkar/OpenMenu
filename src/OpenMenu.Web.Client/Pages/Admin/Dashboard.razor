@@ -1,0 +1,41 @@
+@page "/admin"
+@attribute [Authorize]
+@layout Layout.AdminLayout
+@rendermode InteractiveAuto
+@inject IAdminApi Api
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>Dashboard</PageTitle>
+
+<h1 class="text-2xl font-bold mb-6">@(L["Dashboard"])</h1>
+
+<div class="grid grid-cols-2 gap-4 max-w-md">
+    <div class="card bg-base-200 shadow-md">
+        <div class="card-body p-5">
+            <span class="text-3xl font-bold">@CategoryCount</span>
+            <span class="text-base-content/60">@(L["Categories"])</span>
+        </div>
+    </div>
+    <div class="card bg-base-200 shadow-md">
+        <div class="card-body p-5">
+            <span class="text-3xl font-bold">@ItemCount</span>
+            <span class="text-base-content/60">@(L["MenuItemsStat"])</span>
+        </div>
+    </div>
+</div>
+
+<div class="mt-6 flex gap-2">
+    <NavLink href="/admin/menu" class="btn btn-primary btn-sm">Manage menu</NavLink>
+    <NavLink href="/" class="btn btn-ghost btn-sm">View public menu</NavLink>
+</div>
+
+@code {
+    private int CategoryCount;
+    private int ItemCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CategoryCount = (await Api.GetCategoriesAsync()).Length;
+        ItemCount = (await Api.GetMenuItemsAsync()).Length;
+    }
+}

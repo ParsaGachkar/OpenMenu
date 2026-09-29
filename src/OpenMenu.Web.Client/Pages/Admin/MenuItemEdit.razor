@@ -1,0 +1,201 @@
+@page "/admin/menu/new"
+@page "/admin/menu/{id:int}/edit"
+@attribute [Authorize]
+@layout Layout.AdminLayout
+@rendermode InteractiveAuto
+@inject IAdminApi Api
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>@(IsNew ? "New item" : "Edit item")</PageTitle>
+
+<h1 class="text-2xl font-bold mb-6">@(IsNew ? L["NewItem"] : L["EditItem"])</h1>
+
+<div class="max-w-lg">
+    @if (_error is not null)
+    {
+        <div role="alert" class="alert alert-error mb-4"><span>@_error</span></div>
+    }
+
+    <EditForm Model="_model" OnValidSubmit="SaveAsync" FormName="MenuItemForm">
+        <DataAnnotationsValidator />
+        <div class="card bg-base-200 shadow-md">
+            <div class="card-body gap-4">
+                <label class="form-control w-full">
+                    <span class="label-text mb-1">@(L["Category"]) <span class="text-error">*</span></span>
+                    <InputSelect @bind-Value="_model.CategoryId" class="select select-bordered w-full">
+                        <option value="0" disabled selected>@(_categories?.Any() == true ? L["ChooseCategory"].Value : L["NoCategoriesForItems"].Value)</option>
+                        @foreach (var category in _categories ?? [])
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </InputSelect>
+                </label>
+                <ValidationMessage For="() => _model.CategoryId" class="text-error text-sm" />
+
+                <label class="form-control w-full">
+                    <span class="label-text mb-1">@(L["Name"]) <span class="text-error">*</span></span>
+                    <InputText @bind-Value="_model.Name" class="input input-bordered w-full" maxlength="200" />
+                </label>
+                <ValidationMessage For="() => _model.Name" class="text-error text-sm" />
+
+                <label class="form-control w-full">
+                    <span class="label-text mb-1">@(L["Description"])</span>
+                    <InputTextArea @bind-Value="_model.Description" class="textarea textarea-bordered w-full" rows="3" maxlength="2000" />
+                </label>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="form-control w-full">
+                        <span class="label-text mb-1">@(L["Price"]) <span class="text-error">*</span></span>
+                        <InputNumber @bind-Value="_model.Price" class="input input-bordered w-full" step="0.01" min="0" />
+                    </label>
+                    <label class="form-control w-full">
+                        <span class="label-text mb-1">@(L["Order"])</span>
+                        <InputNumber @bind-Value="_model.SortOrder" class="input input-bordered w-full" />
+                    </label>
+                </div>
+
+                <label class="cursor-pointer label justify-start gap-3">
+                    <InputCheckbox @bind-Value="_model.IsAvailable" class="checkbox checkbox-primary" />
+                    <span class="label-text">@(L["Available"])</span>
+                </label>
+
+                <div class="form-control w-full">
+                    <span class="label-text mb-1">@(L["ImageUrl"]) (≤ 2 MB)</span>
+                    <InputFile OnChange="OnImageSelected" accept="image/*" class="file-input file-input-bordered w-full" />
+                    @if (!string.IsNullOrEmpty(_model.ImageUrl))
+                    {
+                        <div class="mt-2 flex items-center gap-3">
+                            <img src="@_model.ImageUrl" alt="Menu item" class="w-16 h-16 rounded object-cover" />
+                            <button type="button" class="btn btn-ghost btn-xs" @onclick="RemoveImage">Remove image</button>
+                        </div>
+                    }
+                </div>
+
+                <div class="card-actions justify-end mt-2">
+                    <NavLink href="/admin/menu" class="btn btn-ghost">@(L["Cancel"])</NavLink>
+                    <button type="submit" class="btn btn-primary" disabled="@(_saving || _uploading)">@(L["Save"])</button>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private bool IsNew => Id is null or 0;
+
+    private MenuItemFormModel _model = new();
+    private OpenMenu.Domain.CategoryDto[]? _categories;
+    private string? _error;
+    private bool _saving;
+    private bool _uploading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = await Api.GetCategoriesAsync();
+
+        if (!IsNew)
+        {
+            var items = await Api.GetMenuItemsAsync();
+            var item = items.FirstOrDefault(i => i.Id == Id);
+            if (item is not null)
+            {
+                _model = new MenuItemFormModel
+                {
+                    CategoryId = item.CategoryId,
+                    Name = item.Name,
+                    Description = item.Description ?? string.Empty,
+                    Price = item.Price,
+                    ImageUrl = item.ImageUrl,
+                    SortOrder = item.SortOrder,
+                    IsAvailable = item.IsAvailable,
+                };
+            }
+        }
+    }
+
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    {
+        _error = null;
+        _uploading = true;
+        try
+        {
+            // Small files only (server enforces 2 MB); read into memory per the
+            // documented small-file pattern.
+            const long maxFileSize = 2 * 1024 * 1024;
+            await using var stream = e.File.OpenReadStream(maxFileSize);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+
+            var result = await Api.UploadImageAsync(ms.ToArray(), e.File.ContentType, e.File.Name);
+            if (result is null)
+            {
+                _error = "Image upload failed (only images up to 2 MB are allowed).";
+                return;
+            }
+
+            _model.ImageUrl = result.Url;
+        }
+        catch
+        {
+            _error = "Image upload failed (only images up to 2 MB are allowed).";
+        }
+        finally
+        {
+            _uploading = false;
+        }
+    }
+
+    private void RemoveImage() => _model.ImageUrl = null;
+
+    private async Task SaveAsync()
+    {
+        _error = null;
+        _saving = true;
+        try
+        {
+            var result = await Api.SaveMenuItemAsync(
+                IsNew ? null : Id,
+                new MenuItemInput(_model.CategoryId, _model.Name, _model.Description,
+                    _model.Price, _model.ImageUrl, _model.SortOrder, _model.IsAvailable));
+
+            if (result.Success)
+            {
+                Navigation.NavigateTo("/admin/menu", forceLoad: true);
+            }
+            else
+            {
+                _error = result.Error;
+            }
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private sealed class MenuItemFormModel
+    {
+        [Range(1, int.MaxValue, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = nameof(SharedResource.CategoryRequired))]
+        public int CategoryId { get; set; }
+
+        [Required(ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = nameof(SharedResource.FieldRequired))]
+        [StringLength(200, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = nameof(SharedResource.FieldTooLong))]
+        public string Name { get; set; } = string.Empty;
+
+        [StringLength(2000, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = nameof(SharedResource.FieldTooLong))]
+        public string? Description { get; set; }
+
+        [Range(0, 9_999_999.99, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = nameof(SharedResource.PriceRange))]
+        public decimal Price { get; set; }
+
+        public string? ImageUrl { get; set; }
+
+        [Range(0, 9999, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = nameof(SharedResource.OrderRange))]
+        public int SortOrder { get; set; }
+
+        public bool IsAvailable { get; set; } = true;
+    }
+}

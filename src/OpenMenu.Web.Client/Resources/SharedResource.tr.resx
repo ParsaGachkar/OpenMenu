@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccessDenied" xml:space="preserve">
+    <value>Erişim reddedildi</value>
+  </data>
+  <data name="AccessDeniedMessage" xml:space="preserve">
+    <value>Bu sayfayı görüntüleme izniniz yok.</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Aktif</value>
+  </data>
+  <data name="AddTo" xml:space="preserve">
+    <value>Ekle: {0}</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>Mevcut</value>
+  </data>
+  <data name="BackToCategories" xml:space="preserve">
+    <value>Kategorilere dön</value>
+  </data>
+  <data name="BackToMenu" xml:space="preserve">
+    <value>Menüye dön</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Vazgeç</value>
+  </data>
+  <data name="Categories" xml:space="preserve">
+    <value>Kategoriler</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Kategori</value>
+  </data>
+  <data name="CategoryNotFound" xml:space="preserve">
+    <value>Kategori bulunamadı.</value>
+  </data>
+  <data name="CategoryRequired" xml:space="preserve">
+    <value>Lütfen bir kategori seçin.</value>
+  </data>
+  <data name="ChooseCategory" xml:space="preserve">
+    <value>Bir kategori seçin…</value>
+  </data>
+  <data name="ConfirmDeleteCategory" xml:space="preserve">
+    <value>Bu kategori ve tüm öğeleri silinsin mi?</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>Bu menü öğesi silinsin mi?</value>
+  </data>
+  <data name="CreateOneFirst" xml:space="preserve">
+    <value>Önce bir tane oluşturun</value>
+  </data>
+  <data name="Currency" xml:space="preserve">
+    <value>Para birimi</value>
+  </data>
+  <data name="CurrencyHint" xml:space="preserve">
+    <value>ISO 4217 kodu, örn. USD, TRY.</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Kontrol paneli</value>
+  </data>
+  <data name="DashboardAdminHint" xml:space="preserve">
+    <value>Ayarlar ve kullanıcı yönetimi yalnızca yöneticilere açıktır.</value>
+  </data>
+  <data name="DashboardMenuHint" xml:space="preserve">
+    <value>Menünüzü Menü ve Kategoriler sayfalarından yönetin.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Sil</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Açıklama</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Devre dışı</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Düzenle</value>
+  </data>
+  <data name="EditCategory" xml:space="preserve">
+    <value>Kategoriyi düzenle</value>
+  </data>
+  <data name="EditItem" xml:space="preserve">
+    <value>Menü öğesini düzenle</value>
+  </data>
+  <data name="ErrorMessage" xml:space="preserve">
+    <value>İsteğiniz işlenirken bir hata oluştu.</value>
+  </data>
+  <data name="ErrorTitle" xml:space="preserve">
+    <value>Bir şeyler ters gitti</value>
+  </data>
+  <data name="FieldRequired" xml:space="preserve">
+    <value>Bu alan zorunludur.</value>
+  </data>
+  <data name="FieldTooLong" xml:space="preserve">
+    <value>Bu değer çok uzun.</value>
+  </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>Gizli</value>
+  </data>
+  <data name="ImageUrl" xml:space="preserve">
+    <value>Görsel URL'si</value>
+  </data>
+  <data name="InvalidUsernameOrPassword" xml:space="preserve">
+    <value>Kullanıcı adı veya şifre hatalı.</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>Öğeler</value>
+  </data>
+  <data name="ItemNotFound" xml:space="preserve">
+    <value>Menü öğesi bulunamadı.</value>
+  </data>
+  <data name="LoginHeading" xml:space="preserve">
+    <value>Personel girişi</value>
+  </data>
+  <data name="LogoUrl" xml:space="preserve">
+    <value>Logo URL'si</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Çıkış yap</value>
+  </data>
+  <data name="Menu" xml:space="preserve">
+    <value>Menü</value>
+  </data>
+  <data name="MenuItems" xml:space="preserve">
+    <value>Menü öğeleri</value>
+  </data>
+  <data name="MenuItemsStat" xml:space="preserve">
+    <value>Menü öğeleri</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Ad</value>
+  </data>
+  <data name="NewCategory" xml:space="preserve">
+    <value>Yeni kategori</value>
+  </data>
+  <data name="NewItem" xml:space="preserve">
+    <value>Yeni öğe</value>
+  </data>
+  <data name="NoCategories" xml:space="preserve">
+    <value>Henüz kategori yok. Menüyü oluşturmaya başlamak için ilk kategoriyi oluşturun.</value>
+  </data>
+  <data name="NoCategoriesAvailable" xml:space="preserve">
+    <value>Kullanılabilir kategori yok</value>
+  </data>
+  <data name="NoCategoriesForItems" xml:space="preserve">
+    <value>Henüz kategori yok. Önce bir kategori oluşturun — her menü öğesi bir kategoriye aittir.</value>
+  </data>
+  <data name="NoItemsInCategory" xml:space="preserve">
+    <value>Bu kategoride öğe yok.</value>
+  </data>
+  <data name="NoSettingsWarning" xml:space="preserve">
+    <value>Restoran ayarları bulunamadı. Uygulamayı başlangıç verileri etkinken bir kez çalıştırın.</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Sıra</value>
+  </data>
+  <data name="OrderRange" xml:space="preserve">
+    <value>Sıra 0 ile 9999 arasında olmalıdır.</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Şifre</value>
+  </data>
+  <data name="PoweredByOpenMenu" xml:space="preserve">
+    <value>OpenMenu ile hazırlanmıştır</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Fiyat</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Rol</value>
+  </data>
+  <data name="PriceRange" xml:space="preserve">
+    <value>Fiyat 0 ile 9.999.999,99 arasında olmalıdır.</value>
+  </data>
+  <data name="RestaurantSettings" xml:space="preserve">
+    <value>Restoran ayarları</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Kaydet</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Ayarlar</value>
+  </data>
+  <data name="SettingsDescription" xml:space="preserve">
+    <value>Açıklama</value>
+  </data>
+  <data name="SettingsHint" xml:space="preserve">
+    <value>Bu değerler herkese açık menüde görünür.</value>
+  </data>
+  <data name="SettingsName" xml:space="preserve">
+    <value>Restoran adı</value>
+  </data>
+  <data name="SettingsSaved" xml:space="preserve">
+    <value>Ayarlar kaydedildi.</value>
+  </data>
+  <data name="SignIn" xml:space="preserve">
+    <value>Giriş yap</value>
+  </data>
+  <data name="SoldOut" xml:space="preserve">
+    <value>Tükendi</value>
+  </data>
+  <data name="StaffLogin" xml:space="preserve">
+    <value>Personel girişi</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Tema</value>
+  </data>
+  <data name="UnauthorizedUsersNote" xml:space="preserve">
+    <value>Şifre karmaları asla gösterilmez. Kullanıcı oluşturma, düzenleme ve silme bu temel üzerinde uygulanır.</value>
+  </data>
+  <data name="UserManagement" xml:space="preserve">
+    <value>Kullanıcı yönetimi</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>Kullanıcı adı</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>Kullanıcılar</value>
+  </data>
+  <data name="Visible" xml:space="preserve">
+    <value>Görünür</value>
+  </data>
+  <data name="VisibleOnPublicMenu" xml:space="preserve">
+    <value>Herkese açık menüde görünür</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Evet</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Durum</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Etkinleştir</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>Devre dışı bırak</value>
+  </data>
+  <data name="NewUser" xml:space="preserve">
+    <value>Yeni kullanıcı</value>
+  </data>
+  <data name="CreateUser" xml:space="preserve">
+    <value>Kullanıcı oluştur</value>
+  </data>
+</root>

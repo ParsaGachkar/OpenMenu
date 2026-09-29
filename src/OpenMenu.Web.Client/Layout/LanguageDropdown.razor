@@ -1,0 +1,50 @@
+@using System.Globalization
+@* Language dropdown: standard DaisyUI dropdown (https://daisyui.com/components/dropdown/).
+   Cultures are plain anchors to /culture/set (redirect-based culture switching per
+   https://learn.microsoft.com/aspnet/core/blazor/globalization-localization), so the
+   component needs no interactivity: links work identically during prerendering, on
+   server circuits and on WebAssembly. *@
+<div class="dropdown dropdown-end">
+    <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
+        @NativeNameOf(CurrentCulture)
+        <span class="ml-1">▾</span>
+    </div>
+    <ul tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-50 w-40 p-2 shadow">
+        @foreach (var (name, nativeName) in Cultures)
+        {
+            <li>
+                <a href="@CultureUrl(name)" class="@IsCurrent(name)" rel="nofollow">@nativeName</a>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+
+    // Neutral cultures; UI translations live in Resources/SharedResource.{culture}.resx.
+    private static readonly (string Name, string NativeName)[] Cultures =
+    [
+        ("en", "English"),
+        ("fa", "فارسی"),
+        ("tr", "Türkçe"),
+        ("ar", "العربية"),
+    ];
+
+    private static string NativeNameOf(CultureInfo culture)
+    {
+        var match = Cultures.FirstOrDefault(c => c.Name == culture.Name);
+        return string.IsNullOrEmpty(match.NativeName) ? culture.Name : match.NativeName;
+    }
+
+    private static CultureInfo CurrentCulture => CultureInfo.CurrentUICulture;
+
+    private string CultureUrl(string name)
+    {
+        var current = new Uri(Navigation.Uri).PathAndQuery;
+        return $"/culture/set?culture={Uri.EscapeDataString(name)}&redirectTo={Uri.EscapeDataString(current)}";
+    }
+
+    private string IsCurrent(string name) =>
+        name == CurrentCulture.Name ? "menu-active" : string.Empty;
+}

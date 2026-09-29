@@ -1,0 +1,110 @@
+@page "/admin/categories/new"
+@page "/admin/categories/{id:int}/edit"
+@attribute [Authorize]
+@layout Layout.AdminLayout
+@rendermode InteractiveAuto
+@inject IAdminApi Api
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>@(IsNew ? "New category" : "Edit category")</PageTitle>
+
+<h1 class="text-2xl font-bold mb-6">@(IsNew ? L["NewCategory"] : L["EditCategory"])</h1>
+
+<div class="max-w-lg">
+    <EditForm Model="_model" OnValidSubmit="SaveAsync" FormName="CategoryForm">
+        <DataAnnotationsValidator />
+        <div class="card bg-base-200 shadow-md">
+            <div class="card-body gap-4">
+                <label class="form-control w-full">
+                    <span class="label-text mb-1">@(L["Name"]) <span class="text-error">*</span></span>
+                    <InputText @bind-Value="_model.Name" class="input input-bordered w-full" maxlength="200" />
+                </label>
+                <ValidationMessage For="() => _model.Name" class="text-error text-sm" />
+
+                <label class="form-control w-full">
+                    <span class="label-text mb-1">@(L["Description"])</span>
+                    <InputTextArea @bind-Value="_model.Description" class="textarea textarea-bordered w-full" rows="3" maxlength="2000" />
+                </label>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="form-control w-full">
+                        <span class="label-text mb-1">@(L["Order"])</span>
+                        <InputNumber @bind-Value="_model.SortOrder" class="input input-bordered w-full" />
+                    </label>
+                    <label class="label cursor-pointer justify-start gap-3">
+                        <InputCheckbox @bind-Value="_model.IsVisible" class="checkbox checkbox-primary" />
+                        <span class="label-text">@(L["VisibleOnPublicMenu"])</span>
+                    </label>
+                </div>
+
+                <div class="card-actions justify-end mt-2">
+                    <NavLink href="/admin/categories" class="btn btn-ghost">@(L["Cancel"])</NavLink>
+                    <button type="submit" class="btn btn-primary" disabled="@_saving">@(L["Save"])</button>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private bool IsNew => Id is null or 0;
+    private CategoryFormModel _model = new();
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!IsNew)
+        {
+            var categories = await Api.GetCategoriesAsync();
+            var category = categories.FirstOrDefault(c => c.Id == Id);
+            if (category is not null)
+            {
+                _model = new CategoryFormModel
+                {
+                    Name = category.Name,
+                    Description = category.Description ?? string.Empty,
+                    SortOrder = category.SortOrder,
+                    IsVisible = category.IsVisible,
+                };
+            }
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        try
+        {
+            var result = await Api.SaveCategoryAsync(
+                IsNew ? null : Id,
+                new CategoryInput(_model.Name, _model.Description, _model.SortOrder, _model.IsVisible));
+
+            if (result.Success)
+            {
+                Navigation.NavigateTo("/admin/categories", forceLoad: true);
+            }
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private sealed class CategoryFormModel
+    {
+        [Required(ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = nameof(SharedResource.FieldRequired))]
+        [StringLength(200, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = nameof(SharedResource.FieldTooLong))]
+        public string Name { get; set; } = string.Empty;
+
+        [StringLength(2000)]
+        public string? Description { get; set; }
+
+        [Range(0, 9999)]
+        public int SortOrder { get; set; }
+
+        public bool IsVisible { get; set; } = true;
+    }
+}

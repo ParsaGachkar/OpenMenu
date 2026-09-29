@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AccessDenied" xml:space="preserve">
+    <value>دسترسی ممکن نیست</value>
+  </data>
+  <data name="AccessDeniedMessage" xml:space="preserve">
+    <value>شما اجازهٔ مشاهدهٔ این صفحه را ندارید.</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>فعال</value>
+  </data>
+  <data name="AddTo" xml:space="preserve">
+    <value>افزودن به {0}</value>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>موجود</value>
+  </data>
+  <data name="BackToCategories" xml:space="preserve">
+    <value>بازگشت به دسته‌ها</value>
+  </data>
+  <data name="BackToMenu" xml:space="preserve">
+    <value>بازگشت به منو</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>انصراف</value>
+  </data>
+  <data name="Categories" xml:space="preserve">
+    <value>دسته‌ها</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>دسته</value>
+  </data>
+  <data name="CategoryNotFound" xml:space="preserve">
+    <value>دسته پیدا نشد.</value>
+  </data>
+  <data name="CategoryRequired" xml:space="preserve">
+    <value>لطفاً یک دسته انتخاب کنید.</value>
+  </data>
+  <data name="ChooseCategory" xml:space="preserve">
+    <value>انتخاب دسته…</value>
+  </data>
+  <data name="ConfirmDeleteCategory" xml:space="preserve">
+    <value>این دسته و همهٔ آیتم‌های آن حذف شود؟</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>این آیتم منو حذف شود؟</value>
+  </data>
+  <data name="CreateOneFirst" xml:space="preserve">
+    <value>ابتدا یکی بسازید</value>
+  </data>
+  <data name="Currency" xml:space="preserve">
+    <value>واحد پول</value>
+  </data>
+  <data name="CurrencyHint" xml:space="preserve">
+    <value>کد ISO 4217، مثلاً USD یا IRR.</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>داشبورد</value>
+  </data>
+  <data name="DashboardAdminHint" xml:space="preserve">
+    <value>تنظیمات و مدیریت کاربران فقط برای مدیران فعال است.</value>
+  </data>
+  <data name="DashboardMenuHint" xml:space="preserve">
+    <value>منوی خود را از صفحات منو و دسته‌ها مدیریت کنید.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>حذف</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>توضیحات</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>غیرفعال</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>ویرایش</value>
+  </data>
+  <data name="EditCategory" xml:space="preserve">
+    <value>ویرایش دسته</value>
+  </data>
+  <data name="EditItem" xml:space="preserve">
+    <value>ویرایش آیتم منو</value>
+  </data>
+  <data name="ErrorMessage" xml:space="preserve">
+    <value>هنگام پردازش درخواست خطایی رخ داد.</value>
+  </data>
+  <data name="ErrorTitle" xml:space="preserve">
+    <value>خطایی رخ داد</value>
+  </data>
+  <data name="FieldRequired" xml:space="preserve">
+    <value>این فیلد الزامی است.</value>
+  </data>
+  <data name="FieldTooLong" xml:space="preserve">
+    <value>این مقدار بیش از حد طولانی است.</value>
+  </data>
+  <data name="Hidden" xml:space="preserve">
+    <value>پنهان</value>
+  </data>
+  <data name="ImageUrl" xml:space="preserve">
+    <value>نشانی تصویر</value>
+  </data>
+  <data name="InvalidUsernameOrPassword" xml:space="preserve">
+    <value>نام کاربری یا گذرواژه نادرست است.</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>آیتم‌ها</value>
+  </data>
+  <data name="ItemNotFound" xml:space="preserve">
+    <value>آیتم منو پیدا نشد.</value>
+  </data>
+  <data name="LoginHeading" xml:space="preserve">
+    <value>ورود کارکنان</value>
+  </data>
+  <data name="LogoUrl" xml:space="preserve">
+    <value>نشانی لوگو</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>خروج</value>
+  </data>
+  <data name="Menu" xml:space="preserve">
+    <value>منو</value>
+  </data>
+  <data name="MenuItems" xml:space="preserve">
+    <value>آیتم‌های منو</value>
+  </data>
+  <data name="MenuItemsStat" xml:space="preserve">
+    <value>آیتم‌های منو</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>نام</value>
+  </data>
+  <data name="NewCategory" xml:space="preserve">
+    <value>دسته جدید</value>
+  </data>
+  <data name="NewItem" xml:space="preserve">
+    <value>آیتم جدید</value>
+  </data>
+  <data name="NoCategories" xml:space="preserve">
+    <value>هنوز دسته‌ای وجود ندارد. برای ساخت منو، اولین دسته را بسازید.</value>
+  </data>
+  <data name="NoCategoriesAvailable" xml:space="preserve">
+    <value>دسته‌ای موجود نیست</value>
+  </data>
+  <data name="NoCategoriesForItems" xml:space="preserve">
+    <value>هنوز دسته‌ای وجود ندارد. ابتدا یک دسته بسازید — هر آیتم منو به یک دسته تعلق دارد.</value>
+  </data>
+  <data name="NoItemsInCategory" xml:space="preserve">
+    <value>هیچ آیتمی در این دسته نیست.</value>
+  </data>
+  <data name="NoSettingsWarning" xml:space="preserve">
+    <value>تنظیمات رستوران پیدا نشد. یک‌بار برنامه را با فعال بودن داده‌های اولیه اجرا کنید.</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>ترتیب</value>
+  </data>
+  <data name="OrderRange" xml:space="preserve">
+    <value>ترتیب باید بین ۰ تا ۹۹۹۹ باشد.</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>گذرواژه</value>
+  </data>
+  <data name="PoweredByOpenMenu" xml:space="preserve">
+    <value>ساخته‌شده با OpenMenu</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>قیمت</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>نقش</value>
+  </data>
+  <data name="PriceRange" xml:space="preserve">
+    <value>قیمت باید بین ۰ و ۹٬۹۹۹٬۹۹۹٫۹۹ باشد.</value>
+  </data>
+  <data name="RestaurantSettings" xml:space="preserve">
+    <value>تنظیمات رستوران</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>ذخیره</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>تنظیمات</value>
+  </data>
+  <data name="SettingsDescription" xml:space="preserve">
+    <value>توضیحات</value>
+  </data>
+  <data name="SettingsHint" xml:space="preserve">
+    <value>این مقادیر در منوی عمومی نمایش داده می‌شوند.</value>
+  </data>
+  <data name="SettingsName" xml:space="preserve">
+    <value>نام رستوران</value>
+  </data>
+  <data name="SettingsSaved" xml:space="preserve">
+    <value>تنظیمات ذخیره شد.</value>
+  </data>
+  <data name="SignIn" xml:space="preserve">
+    <value>ورود</value>
+  </data>
+  <data name="SoldOut" xml:space="preserve">
+    <value>تمام شده</value>
+  </data>
+  <data name="StaffLogin" xml:space="preserve">
+    <value>ورود کارکنان</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>پوسته</value>
+  </data>
+  <data name="UnauthorizedUsersNote" xml:space="preserve">
+    <value>هش گذرواژه هرگز نمایش داده نمی‌شود. ایجاد، ویرایش و حذف کاربران روی این پایه پیاده‌سازی می‌شود.</value>
+  </data>
+  <data name="UserManagement" xml:space="preserve">
+    <value>مدیریت کاربران</value>
+  </data>
+  <data name="Username" xml:space="preserve">
+    <value>نام کاربری</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>کاربران</value>
+  </data>
+  <data name="Visible" xml:space="preserve">
+    <value>نمایان</value>
+  </data>
+  <data name="VisibleOnPublicMenu" xml:space="preserve">
+    <value>نمایان در منوی عمومی</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>بله</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>وضعیت</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>فعال‌سازی</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>غیرفعال‌سازی</value>
+  </data>
+  <data name="NewUser" xml:space="preserve">
+    <value>کاربر جدید</value>
+  </data>
+  <data name="CreateUser" xml:space="preserve">
+    <value>ایجاد کاربر</value>
+  </data>
+</root>

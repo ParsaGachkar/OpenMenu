@@ -1,0 +1,226 @@
+@page "/admin/settings"
+@attribute [Authorize(Roles = "Admin")]
+@layout Layout.AdminLayout
+@rendermode InteractiveAuto
+@inject IAdminApi Api
+@inject NavigationManager Navigation
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>Settings</PageTitle>
+
+<h1 class="text-2xl font-bold mb-6">@(L["RestaurantSettings"])</h1>
+
+<div class="max-w-lg">
+    @if (_savedFromQuery)
+    {
+        <div role="alert" class="alert alert-success mb-4"><span>@(L["SettingsSaved"])</span></div>
+    }
+    @if (_error is not null)
+    {
+        <div role="alert" class="alert alert-error mb-4"><span>@_error</span></div>
+    }
+
+    <EditForm Model="_model" OnValidSubmit="SaveAsync" FormName="SettingsForm">
+        <DataAnnotationsValidator />
+        <div class="card bg-base-200 shadow-md">
+            <div class="card-body gap-4">
+                <label class="form-control w-full">
+                    <span class="label-text mb-1">@(L["SettingsName"]) <span class="text-error">*</span></span>
+                    <InputText @bind-Value="_model.Name" class="input input-bordered w-full" maxlength="200" />
+                </label>
+                <ValidationMessage For="() => _model.Name" class="text-error text-sm" />
+
+                <label class="form-control w-full">
+                    <span class="label-text mb-1">@(L["SettingsDescription"])</span>
+                    <InputTextArea @bind-Value="_model.Description" class="textarea textarea-bordered w-full" rows="3" maxlength="2000" />
+                </label>
+
+                <div class="form-control w-full">
+                    <span class="label-text mb-1">@(L["LogoUrl"]) (≤ 2 MB)</span>
+                    <InputFile OnChange="OnLogoSelected" accept="image/*" class="file-input file-input-bordered w-full" />
+                    @if (!string.IsNullOrEmpty(_model.LogoUrl))
+                    {
+                        <div class="mt-2 flex items-center gap-3">
+                            <img src="@_model.LogoUrl" alt="Logo" class="w-14 h-14 rounded-full object-cover" />
+                            <button type="button" class="btn btn-ghost btn-xs" @onclick="RemoveLogo">Remove logo</button>
+                        </div>
+                    }
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="form-control w-full">
+                        <span class="label-text mb-1">@(L["Currency"]) <span class="text-error">*</span></span>
+                        <InputSelect @bind-Value="_model.Currency" class="select select-bordered w-full">
+                            @foreach (var (currency, name) in Currencies)
+                            {
+                                <option value="@currency">@currency — @name</option>
+                            }
+                        </InputSelect>
+                    </label>
+                    <label class="form-control w-full">
+                        <span class="label-text mb-1">@(L["Theme"])</span>
+                        <InputSelect @bind-Value="_model.Theme" class="select select-bordered w-full">
+                            @foreach (var theme in Themes)
+                            {
+                                <option value="@theme">@theme</option>
+                            }
+                        </InputSelect>
+                    </label>
+                </div>
+
+                <label class="form-control w-full">
+                    <span class="label-text mb-1">Primary color override (optional)</span>
+                    <div class="flex items-center gap-3">
+                        <input type="color" value="@_primaryColor" @onchange="OnPrimaryColorChanged" class="input input-bordered w-16 p-1" />
+                        <span class="text-sm text-base-content/60">Leave unchanged to keep the theme's primary color.</span>
+                        @if (_colorTouched)
+                        {
+                            <button type="button" class="btn btn-ghost btn-xs" @onclick="ResetPrimaryColor">Reset</button>
+                        }
+                    </div>
+                </label>
+
+                <div class="card-actions justify-end mt-2">
+                    <button type="submit" class="btn btn-primary" disabled="@_saving">@(L["Save"])</button>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    // Common ISO 4217 codes; kept small on purpose for a single-restaurant app.
+    private static readonly (string Code, string Name)[] Currencies =
+    [
+        ("USD", "US Dollar"), ("EUR", "Euro"), ("GBP", "British Pound"),
+        ("IRR", "Iranian Rial"), ("TRY", "Turkish Lira"), ("AED", "UAE Dirham"),
+        ("SAR", "Saudi Riyal"), ("IQD", "Iraqi Dinar"),
+    ];
+
+    // All DaisyUI built-in themes (daisyui.com/docs/themes).
+    private static readonly string[] Themes =
+    [
+        "light", "dark", "cupcake", "bumblebee", "emerald", "corporate", "synthwave",
+        "retro", "cyberpunk", "valentine", "halloween", "garden", "forest", "aqua",
+        "lofi", "pastel", "fantasy", "wireframe", "black", "luxury", "dracula",
+        "cmyk", "autumn", "business", "acid", "lemonade", "night", "coffee",
+        "winter", "dim", "nord", "sunset",
+    ];
+
+    private SettingsFormModel _model = new();
+    private string _primaryColor = "#570df8";
+    private bool _colorTouched;
+    private bool _savedFromQuery;
+    private string? _error;
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Standard save-then-redirect feedback: /admin/settings?saved=1 is set by
+        // SaveAsync, so the confirmation survives the full reload that applies the theme.
+        var uri = new Uri(Navigation.Uri);
+        _savedFromQuery = uri.Query.Contains("saved=1");
+
+        var settings = await Api.GetSettingsAsync();
+        if (settings is not null)
+        {
+            _model = new SettingsFormModel
+            {
+                Name = settings.Name,
+                Description = settings.Description ?? string.Empty,
+                LogoUrl = settings.LogoUrl,
+                Currency = settings.Currency,
+                Theme = settings.Theme,
+                PrimaryColor = settings.PrimaryColor,
+            };
+            _primaryColor = settings.PrimaryColor ?? "#570df8";
+            _colorTouched = settings.PrimaryColor is not null;
+        }
+    }
+
+    private void OnPrimaryColorChanged(ChangeEventArgs e)
+    {
+        _primaryColor = e.Value?.ToString() ?? _primaryColor;
+        _colorTouched = true;
+    }
+
+    private void ResetPrimaryColor()
+    {
+        _colorTouched = false;
+        _model.PrimaryColor = null;
+    }
+
+    private async Task OnLogoSelected(InputFileChangeEventArgs e)
+    {
+        _error = null;
+        try
+        {
+            const long maxFileSize = 2 * 1024 * 1024;
+            await using var stream = e.File.OpenReadStream(maxFileSize);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+
+            var result = await Api.UploadImageAsync(ms.ToArray(), e.File.ContentType, e.File.Name);
+            if (result is null)
+            {
+                _error = "Logo upload failed (only images up to 2 MB are allowed).";
+                return;
+            }
+
+            _model.LogoUrl = result.Url;
+        }
+        catch
+        {
+            _error = "Logo upload failed (only images up to 2 MB are allowed).";
+        }
+    }
+
+    private void RemoveLogo() => _model.LogoUrl = null;
+
+    private async Task SaveAsync()
+    {
+        _error = null;
+        _saving = true;
+        try
+        {
+            _model.PrimaryColor = _colorTouched ? _primaryColor : null;
+            var result = await Api.SaveSettingsAsync(new SettingsInput(
+                _model.Name, _model.Description, _model.LogoUrl,
+                _model.Currency, _model.Theme, _model.PrimaryColor));
+
+            if (result.Success)
+            {
+                // The theme/color is baked into the server-rendered <html> tag,
+                // so a full reload applies it; ?saved=1 keeps the confirmation visible.
+                Navigation.NavigateTo("/admin/settings?saved=1", forceLoad: true);
+            }
+            else
+            {
+                _error = result.Error;
+            }
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private sealed class SettingsFormModel
+    {
+        [Required(ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = nameof(SharedResource.FieldRequired)), StringLength(200, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = nameof(SharedResource.FieldTooLong))]
+        public string Name { get; set; } = string.Empty;
+
+        [StringLength(2000)]
+        public string? Description { get; set; }
+
+        public string? LogoUrl { get; set; }
+
+        [Required]
+        public string Currency { get; set; } = "USD";
+
+        [Required]
+        public string Theme { get; set; } = "light";
+
+        public string? PrimaryColor { get; set; }
+    }
+}

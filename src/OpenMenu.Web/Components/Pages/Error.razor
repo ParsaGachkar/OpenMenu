@@ -1,0 +1,11 @@
+@page "/Error"
+@attribute [AllowAnonymous]
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>@(L["ErrorTitle"])</PageTitle>
+
+<div class="max-w-md mx-auto my-16 text-center">
+    <h1 class="text-3xl font-bold mb-3">@(L["ErrorTitle"])</h1>
+    <p class="text-base-content/70 mb-6">@(L["ErrorMessage"])</p>
+    <NavLink href="/" class="btn btn-primary">@(L["BackToMenu"])</NavLink>
+</div>

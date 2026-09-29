@@ -1,0 +1,85 @@
+@page "/"
+@inject AppDbContext Db
+@inject IStringLocalizer<SharedResource> L
+@attribute [StreamRendering]
+
+<PageTitle>@(Settings?.Name ?? L["Menu"])</PageTitle>
+
+@if (Settings is null)
+{
+    <div class="alert alert-warning">
+        <span>@(L["NoSettingsWarning"])</span>
+    </div>
+}
+else
+{
+    <section class="text-center py-6">
+        @if (!string.IsNullOrEmpty(Settings.LogoUrl))
+        {
+            <img src="@Settings.LogoUrl" alt="@Settings.Name" class="w-20 h-20 rounded-full mx-auto mb-3 object-cover" />
+        }
+        <h1 class="text-3xl font-bold">@Settings.Name</h1>
+        <p class="mt-2 text-base-content/70">@Settings.Description</p>
+    </section>
+
+    @foreach (var category in Categories)
+    {
+        <section class="mb-10" id="@($"category-{category.Id}")">
+            <h2 class="text-2xl font-semibold border-b border-base-300 pb-2 mb-4">@category.Name</h2>
+            @if (!string.IsNullOrEmpty(category.Description))
+            {
+                <p class="text-base-content/60 mb-4">@category.Description</p>
+            }
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                @foreach (var item in category.Items)
+                {
+                    <article class="card bg-base-200 shadow-sm">
+                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            <figure>
+                                <img src="@item.ImageUrl" alt="@item.Name" class="h-40 w-full object-cover rounded-t-box" loading="lazy" />
+                            </figure>
+                        }
+                        <div class="card-body p-4">
+                            <div class="flex items-start justify-between gap-2">
+                                <h3 class="font-semibold">@item.Name</h3>
+                                <span class="font-semibold whitespace-nowrap">
+                                    @FormatPrice(item.Price)
+                                </span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(item.Description))
+                            {
+                                <p class="text-sm text-base-content/60">@item.Description</p>
+                            }
+                            @if (!item.IsAvailable)
+                            {
+                                <div class="mt-1"><span class="badge badge-ghost">@(L["SoldOut"])</span></div>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+}
+
+@code {
+    private RestaurantSettings? Settings;
+    private List<Category> Categories = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        Settings = await Db.RestaurantSettings.AsNoTracking().FirstOrDefaultAsync();
+
+        Categories = await Db.Categories
+            .Where(c => c.IsVisible)
+            .OrderBy(c => c.SortOrder)
+            .Include(c => c.Items.OrderBy(i => i.SortOrder).ThenBy(i => i.Name))
+            .AsSplitQuery()
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    private string FormatPrice(decimal price) => $"{price.ToString("N2", CultureInfo.CurrentCulture)} {Settings!.Currency}";
+}

@@ -1,0 +1,7 @@
+# **-prefixed patterns match at any depth of the build context.
+**/node_modules
+**/bin
+**/obj
+.dotnet/
+*.user
+.env

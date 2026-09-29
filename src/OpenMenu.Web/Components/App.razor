@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="@CultureInfo.CurrentUICulture.Name" dir="@Direction" data-theme="@Theme" style="@PrimaryColorStyle">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="css/app.min.css" />
+    <HeadOutlet @rendermode="InteractiveAuto" />
+</head>
+<body>
+    <Routes />
+    <script src="_framework/blazor.web.js"></script>
+</body>
+</html>
+
+@code {
+    [Inject]
+    private AppDbContext Db { get; set; } = null!;
+
+    private string _theme = "light";
+    private string? _primaryColor;
+    private string Theme => _theme;
+
+    protected override void OnInitialized()
+    {
+        // The single-row settings table; fallback keeps rendering safe.
+        var settings = Db.RestaurantSettings.AsNoTracking().FirstOrDefault();
+        _theme = settings?.Theme ?? "light";
+        _primaryColor = settings?.PrimaryColor;
+    }
+
+    /// <summary>
+    /// Overrides the active DaisyUI theme's primary color via the documented
+    /// CSS variables; empty style attribute when no override is set.
+    /// </summary>
+    private string PrimaryColorStyle =>
+        string.IsNullOrWhiteSpace(_primaryColor) ? "" : $"--color-primary: {_primaryColor}; --color-primary-content: #ffffff;";
+
+    /// <summary>RTL when the UI culture is right-to-left (fa, ar); set via request localization.</summary>
+    private static string Direction =>
+        CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr";
+}

@@ -1,0 +1,36 @@
+@inherits LayoutComponentBase
+@inject IStringLocalizer<SharedResource> L
+
+@* Client-side admin layout. Rendered inside pages that use InteractiveAuto,
+   so no render mode is needed here. *@
+<div class="min-h-screen flex flex-col bg-base-100">
+    <header class="navbar bg-base-200 px-4">
+        <div class="navbar-start">
+            <NavLink href="/admin" class="btn btn-ghost text-lg font-semibold" Match="NavLinkMatch.All">OpenMenu Admin</NavLink>
+        </div>
+        <div class="navbar-center">
+            <ul class="menu menu-horizontal gap-1">
+                <li><NavLink href="/admin" ActiveClass="menu-active" Match="NavLinkMatch.All">@(L["Dashboard"])</NavLink></li>
+                <li><NavLink href="/admin/menu" ActiveClass="menu-active">@(L["Menu"])</NavLink></li>
+                <li><NavLink href="/admin/categories" ActiveClass="menu-active">@(L["Categories"])</NavLink></li>
+                <li><NavLink href="/admin/settings" ActiveClass="menu-active">@(L["Settings"])</NavLink></li>
+                <AuthorizeView Roles="Admin">
+                    <li><NavLink href="/admin/users" ActiveClass="menu-active">@(L["Users"])</NavLink></li>
+                </AuthorizeView>
+            </ul>
+        </div>
+        <div class="navbar-end gap-2">
+            <LanguageDropdown />
+            <AuthorizeView>
+                <span class="text-sm opacity-70">@context.User.Identity?.Name</span>
+            </AuthorizeView>
+            <form method="post" action="/logout">
+                <button type="submit" class="btn btn-ghost btn-sm">@(L["Logout"])</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-6">
+        @Body
+    </main>
+</div>

@@ -1,0 +1,42 @@
+/* Tailwind v4 + DaisyUI 5. DaisyUI ships only light/dark by default; "all"
+   enables every built-in theme so admins can pick any of them in Settings. */
+@import "tailwindcss";
+@plugin "daisyui" {
+    themes: all;
+}
+
+/* Explicit content sources (Tailwind v4 @source): utility classes are only
+   emitted for selectors found in scanned files. The UI spans two projects —
+   the server's Razor components and the client (WebAssembly) admin pages —
+   so both must be scanned. Paths are relative to this file, which matches
+   both the repo layout and the Docker build layout. */
+@source "../";
+@source "../../OpenMenu.Web.Client";
+
+/* ---- Fonts: self-hosted Open Sans (latin) + Vazirmatn (arabic script) ---- */
+
+@font-face {
+    font-family: "Open Sans";
+    font-style: normal;
+    font-weight: 300 800;
+    font-display: swap;
+    src: url("/fonts/OpenSans-VariableFont.ttf") format("truetype-variations");
+}
+
+@font-face {
+    font-family: "Vazirmatn";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("/fonts/Vazirmatn-VariableFont.ttf") format("truetype-variations");
+}
+
+/* Language-appropriate font: Vazirmatn covers the Arabic script (fa, ar). */
+html {
+    font-family: "Open Sans", "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+}
+
+html[lang="fa"],
+html[lang="ar"] {
+    font-family: "Vazirmatn", "Open Sans", ui-sans-serif, system-ui, sans-serif;
+}
