@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -251,5 +251,65 @@
   </data>
   <data name="CreateUser" xml:space="preserve">
     <value>ایجاد کاربر</value>
+  </data>
+  <data name="CulturesHeading" xml:space="preserve">
+    <value>زبان‌ها</value>
+  </data>
+  <data name="DefaultCulture" xml:space="preserve">
+    <value>زبان پیش‌فرض</value>
+  </data>
+  <data name="DefaultCultureHint" xml:space="preserve">
+    <value>برای بازدیدکنندگان بدون ترجیح زبان نمایش داده می‌شود.</value>
+  </data>
+  <data name="EnabledCultures" xml:space="preserve">
+    <value>زبان‌های فعال</value>
+  </data>
+  <data name="EnabledCulturesHint" xml:space="preserve">
+    <value>فقط این زبان‌ها در انتخابگر نمایش داده می‌شوند؛ زبان پیش‌فرض غیرفعال نمی‌شود.</value>
+  </data>
+  <data name="GalleryImages" xml:space="preserve">
+    <value>تصاویر بیشتر</value>
+  </data>
+  <data name="GalleryAfterSaveHint" xml:space="preserve">
+    <value>تصاویر بیشتر و ویدیو را می‌توان پس از ذخیره افزود.</value>
+  </data>
+  <data name="SaveTranslation" xml:space="preserve">
+    <value>ذخیره ترجمه</value>
+  </data>
+  <data name="TranslationPriceHint" xml:space="preserve">
+    <value>برای استفاده از قیمت اصلی خالی بگذارید.</value>
+  </data>
+  <data name="TranslationsHeading" xml:space="preserve">
+    <value>ترجمه‌ها</value>
+  </data>
+  <data name="Video" xml:space="preserve">
+    <value>ویدیو</value>
+  </data>
+  <data name="ConfirmDeleteImage" xml:space="preserve">
+    <value>این تصویر حذف شود؟</value>
+  </data>
+  <data name="ConfirmDeleteVideo" xml:space="preserve">
+    <value>این ویدیو حذف شود؟</value>
+  </data>
+  <data name="Photos" xml:space="preserve">
+    <value>تصاویر</value>
+  </data>
+  <data name="PhotosHint" xml:space="preserve">
+    <value>تصویر اول کاور است.</value>
+  </data>
+  <data name="Cover" xml:space="preserve">
+    <value>کاور</value>
+  </data>
+  <data name="TranslationsAfterSaveHint" xml:space="preserve">
+    <value>ترجمه‌ها را می‌توان پس از ذخیره افزود.</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>جزئیات</value>
+  </data>
+  <data name="QrHeading" xml:space="preserve">
+    <value>کد QR منو</value>
+  </data>
+  <data name="QrHint" xml:space="preserve">
+    <value>برای باز کردن منوی عمومی اسکن کنید. برای روی میزها و تبلیغات چاپ کنید.</value>
   </data>
 </root>

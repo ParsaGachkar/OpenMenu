@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -251,5 +251,65 @@
   </data>
   <data name="CreateUser" xml:space="preserve">
     <value>Create user</value>
+  </data>
+  <data name="CulturesHeading" xml:space="preserve">
+    <value>Languages</value>
+  </data>
+  <data name="DefaultCulture" xml:space="preserve">
+    <value>Default language</value>
+  </data>
+  <data name="DefaultCultureHint" xml:space="preserve">
+    <value>Shown to visitors without a language preference.</value>
+  </data>
+  <data name="EnabledCultures" xml:space="preserve">
+    <value>Enabled languages</value>
+  </data>
+  <data name="EnabledCulturesHint" xml:space="preserve">
+    <value>Only these languages appear in the switcher; the default cannot be disabled.</value>
+  </data>
+  <data name="GalleryImages" xml:space="preserve">
+    <value>More images</value>
+  </data>
+  <data name="GalleryAfterSaveHint" xml:space="preserve">
+    <value>Additional images and video can be added after saving.</value>
+  </data>
+  <data name="SaveTranslation" xml:space="preserve">
+    <value>Save translation</value>
+  </data>
+  <data name="TranslationPriceHint" xml:space="preserve">
+    <value>Leave empty to use the main price.</value>
+  </data>
+  <data name="TranslationsHeading" xml:space="preserve">
+    <value>Translations</value>
+  </data>
+  <data name="Video" xml:space="preserve">
+    <value>Video</value>
+  </data>
+  <data name="ConfirmDeleteImage" xml:space="preserve">
+    <value>Delete this image?</value>
+  </data>
+  <data name="ConfirmDeleteVideo" xml:space="preserve">
+    <value>Delete this video?</value>
+  </data>
+  <data name="Photos" xml:space="preserve">
+    <value>Photos</value>
+  </data>
+  <data name="PhotosHint" xml:space="preserve">
+    <value>First photo is the cover.</value>
+  </data>
+  <data name="Cover" xml:space="preserve">
+    <value>Cover</value>
+  </data>
+  <data name="TranslationsAfterSaveHint" xml:space="preserve">
+    <value>Translations can be added after saving.</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="QrHeading" xml:space="preserve">
+    <value>Menu QR code</value>
+  </data>
+  <data name="QrHint" xml:space="preserve">
+    <value>Scan to open the public menu. Print it for table tents and flyers.</value>
   </data>
 </root>

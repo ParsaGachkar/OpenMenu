@@ -4,35 +4,50 @@ A self-hosted, single-restaurant digital menu built with .NET 10, Blazor, EF Cor
 
 ## Stack
 
-- .NET 10 — Blazor Web App (server-side SSR, no WebAssembly)
+- .NET 10 — Blazor Web App (SSR + InteractiveAuto admin pages, WebAssembly for the client half)
 - EF Core 10 + PostgreSQL (Npgsql)
 - Tailwind CSS v4 + DaisyUI 5
 - Cookie authentication — deliberately **no** ASP.NET Core Identity
 
-## Project structure
+## Project structure (Clean Architecture)
 
 ```
 OpenMenu/
 ├── src/
-│   ├── OpenMenu.Web/              Blazor UI, auth, localization, admin pages
 │   ├── OpenMenu.Domain/           Entities + UserRole enum (no dependencies)
-│   ├── OpenMenu.Application/      Reserved for future use-case logic (intentionally empty)
-│   └── OpenMenu.Infrastructure/   EF Core DbContext, migrations, password hasher, seeder
+│   ├── OpenMenu.Application.Shared/  Reusable contracts: IAdminApi, DTOs, SupportedCultures, PriceFormatter
+│   ├── OpenMenu.Application/      AdminApiServer — the IAdminApi implementation (server render path)
+│   ├── OpenMenu.Infrastructure/   EF Core DbContext, migrations, password hasher, seeder
+│   ├── OpenMenu.Web.Client/       Blazor client library: admin pages (InteractiveAuto), resources, WASM bootstrap
+│   └── OpenMenu.Web/              Host: SSR pages, auth, localization, admin JSON APIs, media serving
 ├── tests/
-│   ├── OpenMenu.Tests/            Unit tests (password hasher)
+│   ├── OpenMenu.Tests/            Unit tests (password hasher, price formatting)
+│   ├── OpenMenu.ComponentTests/   bUnit component tests (real components)
+│   ├── OpenMenu.IntegrationTests/ WebApplicationFactory tests for the admin JSON APIs
 │   └── OpenMenu.E2ETests/         Playwright end-to-end tests (real browser)
-├── .github/workflows/ci.yml       Build + unit tests + E2E (Docker Compose)
+├── .github/workflows/ci.yml       Build + all test layers (Docker Compose)
 ├── docker-compose.yml
 ├── Dockerfile
 └── README.md
 ```
 
+Dependency flow: `Domain ← Application.Shared ← Application/Infrastructure/Web`; `Web.Client` depends on `Application.Shared` only.
+The admin pages run InteractiveAuto: `IAdminApi` is served by `AdminApiServer` (direct DbContext, server circuits) or `AdminApiClient`
+(HTTP against the admin JSON APIs, WebAssembly) — one contract, two render paths.
+
 ## Features
 
 - **Public menu** (`/`) — restaurant name, description, categories, items, prices, availability. Mobile-first, responsive, themeable.
+- **Menu item detail pages** (`/menu/item/{id}`) — full photo gallery, video, per-culture name/description/price; linked from every menu card.
 - **Admin area** (`/admin`) — dashboard, full CRUD for categories and menu items, restaurant settings (name, description, logo, currency, DaisyUI theme), user management (Admin only).
+- **Per-culture menu content** — every category and item can have a name/description/price override per enabled culture (data rows, not resx). The public menu and detail pages show the visitor's language with fallback to the invariant values.
+- **Photo galleries** — menu items take multiple photos (first = cover); pending uploads are managed in the editor gallery before saving.
+- **Video per menu item** — uploaded to the `media` volume (never a DB blob), ≤ 50 MB, served with range processing; correct content type per extension.
+- **Currency display** — guest-friendly formatting (`$9.90`, `99,000 ریال`, `990 تومان`): symbols instead of ISO codes and whole numbers for Rial/Toman-type currencies. **Toman** is offered alongside ISO codes in Settings; the admin is responsible for entering prices in the selected unit.
+- **Culture management** — pick a default culture and enable/disable the offered languages in Settings; disabled cultures are rejected by `/culture/set`.
+- **Menu QR code** — `/qr/menu` renders a printable PNG of the public menu URL; shown in Settings for table tents.
 - **Authentication** — cookie-based login with roles (Admin, Editor), no registration, no Identity framework.
-- **Localization** — English, Farsi (فارسی), Turkish, Arabic via the standard ASP.NET Core localization stack (resx + `IStringLocalizer` + `RequestLocalization`). Right-to-left layouts are applied automatically for Farsi and Arabic. Users pick a language from the header; the choice is stored in the standard culture cookie.
+- **Localization** — English, Farsi (فارسی), Turkish, Arabic via the standard ASP.NET Core localization stack (resx + `IStringLocalizer` + `RequestLocalization`). Right-to-left layouts are applied automatically for Farsi and Arabic. Culture links force a full document reload (`data-enhance-nav="false"`) so a running WebAssembly runtime re-reads the culture cookie.
 
 ## Authentication
 
@@ -99,19 +114,31 @@ Implemented with the standard ASP.NET Core stack, no custom machinery:
 ## Tests
 
 ```bash
-# Unit tests
+# Unit tests (password hasher, price formatting)
 dotnet test tests/OpenMenu.Tests
+
+# Component tests (bUnit, real components)
+dotnet test tests/OpenMenu.ComponentTests
+
+# Integration tests (WebApplicationFactory; in-memory SQLite replaces
+# PostgreSQL, so no external database is needed)
+dotnet test tests/OpenMenu.IntegrationTests
 
 # End-to-end tests (requires the app running at localhost:8088; override with OPENMENU_BASEURL,
 # and a reachable PostgreSQL at localhost:5433 — both provided by `docker compose up`)
 dotnet test tests/OpenMenu.E2ETests
 ```
 
-The E2E suite drives a real browser (Playwright, system Chrome) through the public menu, login/logout, role gates, category and menu-item CRUD, settings + theme, culture switching, RTL, and localized validation messages.
+The E2E suite drives a real browser (Playwright, system Chrome) through the public menu and detail pages, login/logout, role gates,
+category and menu-item CRUD, the photo gallery, video upload, settings + theme, culture switching (including the WASM culture
+regressions), RTL, and localized validation messages. `OPENMENU_TIMEOUT` (seconds, default 20) raises locator/expect timeouts on
+slow machines.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every push/PR: builds the solution, runs unit tests, boots the full stack with Docker Compose, waits for the app to become healthy, runs the Playwright E2E suite against it, and uploads browser test artifacts on failure.
+`.github/workflows/ci.yml` runs on every push/PR: builds the solution, runs unit + bUnit tests, boots the full stack with Docker
+Compose, waits for the app to become healthy, runs the integration tests (admin JSON APIs, in-memory SQLite), then the
+Playwright E2E suite against the running app, and uploads browser test artifacts on failure.
 
 ## Notes
 

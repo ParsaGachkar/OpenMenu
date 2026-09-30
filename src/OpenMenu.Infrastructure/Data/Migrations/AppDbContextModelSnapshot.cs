@@ -52,6 +52,38 @@ namespace OpenMenu.Infrastructure.Data.Migrations
                     b.ToTable("Categories", (string)null);
                 });
 
+            modelBuilder.Entity("OpenMenu.Domain.CategoryTranslation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Culture")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId", "Culture")
+                        .IsUnique();
+
+                    b.ToTable("CategoryTranslations", (string)null);
+                });
+
             modelBuilder.Entity("OpenMenu.Domain.ImageFile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -112,6 +144,96 @@ namespace OpenMenu.Infrastructure.Data.Migrations
                     b.ToTable("MenuItems", (string)null);
                 });
 
+            modelBuilder.Entity("OpenMenu.Domain.MenuItemImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MenuItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuItemId", "SortOrder");
+
+                    b.ToTable("MenuItemImages", (string)null);
+                });
+
+            modelBuilder.Entity("OpenMenu.Domain.MenuItemTranslation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Culture")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("MenuItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<decimal?>("Price")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuItemId", "Culture")
+                        .IsUnique();
+
+                    b.ToTable("MenuItemTranslations", (string)null);
+                });
+
+            modelBuilder.Entity("OpenMenu.Domain.MenuItemVideo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("MenuItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuItemId")
+                        .IsUnique();
+
+                    b.ToTable("MenuItemVideos", (string)null);
+                });
+
             modelBuilder.Entity("OpenMenu.Domain.RestaurantSettings", b =>
                 {
                     b.Property<int>("Id")
@@ -122,10 +244,20 @@ namespace OpenMenu.Infrastructure.Data.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("character varying(3)");
 
+                    b.Property<string>("DefaultCulture")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("EnabledCultures")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("LogoUrl")
                         .HasMaxLength(500)
@@ -187,6 +319,17 @@ namespace OpenMenu.Infrastructure.Data.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("OpenMenu.Domain.CategoryTranslation", b =>
+                {
+                    b.HasOne("OpenMenu.Domain.Category", "Category")
+                        .WithMany("Translations")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("OpenMenu.Domain.MenuItem", b =>
                 {
                     b.HasOne("OpenMenu.Domain.Category", "Category")
@@ -198,9 +341,53 @@ namespace OpenMenu.Infrastructure.Data.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("OpenMenu.Domain.MenuItemImage", b =>
+                {
+                    b.HasOne("OpenMenu.Domain.MenuItem", "MenuItem")
+                        .WithMany("Images")
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MenuItem");
+                });
+
+            modelBuilder.Entity("OpenMenu.Domain.MenuItemTranslation", b =>
+                {
+                    b.HasOne("OpenMenu.Domain.MenuItem", "MenuItem")
+                        .WithMany("Translations")
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MenuItem");
+                });
+
+            modelBuilder.Entity("OpenMenu.Domain.MenuItemVideo", b =>
+                {
+                    b.HasOne("OpenMenu.Domain.MenuItem", "MenuItem")
+                        .WithOne("Video")
+                        .HasForeignKey("OpenMenu.Domain.MenuItemVideo", "MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MenuItem");
+                });
+
             modelBuilder.Entity("OpenMenu.Domain.Category", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("OpenMenu.Domain.MenuItem", b =>
+                {
+                    b.Navigation("Images");
+
+                    b.Navigation("Translations");
+
+                    b.Navigation("Video");
                 });
 #pragma warning restore 612, 618
         }

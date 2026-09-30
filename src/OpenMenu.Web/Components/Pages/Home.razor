@@ -25,37 +25,67 @@ else
     @foreach (var category in Categories)
     {
         <section class="mb-10" id="@($"category-{category.Id}")">
-            <h2 class="text-2xl font-semibold border-b border-base-300 pb-2 mb-4">@category.Name</h2>
+            <h2 class="text-2xl font-semibold border-b border-base-300 pb-2 mb-4">@NameOf(category)</h2>
             @if (!string.IsNullOrEmpty(category.Description))
             {
-                <p class="text-base-content/60 mb-4">@category.Description</p>
+                <p class="text-base-content/60 mb-4">@(FindTranslation(category.Translations)?.Description ?? category.Description)</p>
             }
 
             <div class="grid gap-4 sm:grid-cols-2">
                 @foreach (var item in category.Items)
                 {
                     <article class="card bg-base-200 shadow-sm">
-                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                        @if (GalleryOf(item) is { Count: > 0 } gallery)
                         {
                             <figure>
-                                <img src="@item.ImageUrl" alt="@item.Name" class="h-40 w-full object-cover rounded-t-box" loading="lazy" />
+                                <img src="@gallery[0]" alt="@NameOf(item)" class="h-40 w-full object-cover rounded-t-box" loading="lazy" />
+                                @if (gallery.Count > 1)
+                                {
+                                    <div class="absolute top-2 right-2 badge badge-neutral">+@(gallery.Count - 1)</div>
+                                }
                             </figure>
                         }
                         <div class="card-body p-4">
                             <div class="flex items-start justify-between gap-2">
-                                <h3 class="font-semibold">@item.Name</h3>
+                                <h3 class="font-semibold">
+                                    <NavLink href="@($"/menu/item/{item.Id}")" class="link link-hover">@NameOf(item)</NavLink>
+                                </h3>
                                 <span class="font-semibold whitespace-nowrap">
-                                    @FormatPrice(item.Price)
+                                    @(OpenMenu.Application.Shared.PriceFormatter.Format(PriceOf(item), Settings!.Currency))
                                 </span>
                             </div>
                             @if (!string.IsNullOrEmpty(item.Description))
                             {
-                                <p class="text-sm text-base-content/60">@item.Description</p>
+                                <p class="text-sm text-base-content/60">@DescriptionOf(item)</p>
                             }
+
+                            @* Video preview (feature: video support). *@
+                            @if (item.Video is not null)
+                            {
+                                <video src="@item.Video.Url" controls preload="metadata"
+                                       class="rounded mt-2 w-full max-h-56"></video>
+                            }
+
+                            @* Image gallery thumbnails (feature: multiple images). *@
+                            @* @if (gallery is { Count: > 1 }) *@
+                            @* { *@
+                            @*     <div class="flex flex-wrap gap-2 mt-2"> *@
+                            @*         @foreach (var url in gallery) *@
+                            @*         { *@
+                            @*             <img src="@url" alt="@NameOf(item)" class="w-14 h-14 rounded object-cover" loading="lazy" /> *@
+                            @*         } *@
+                            @*     </div> *@
+                            @* } *@
+
                             @if (!item.IsAvailable)
                             {
                                 <div class="mt-1"><span class="badge badge-ghost">@(L["SoldOut"])</span></div>
                             }
+                            <div class="card-actions mt-2">
+                                <NavLink href="@($"/menu/item/{item.Id}")" class="btn btn-sm btn-ghost">
+                                    @(L["ViewDetails"])
+                                </NavLink>
+                            </div>
                         </div>
                     </article>
                 }
@@ -68,6 +98,8 @@ else
     private RestaurantSettings? Settings;
     private List<Category> Categories = [];
 
+    private string? _culture;
+
     protected override async Task OnInitializedAsync()
     {
         Settings = await Db.RestaurantSettings.AsNoTracking().FirstOrDefaultAsync();
@@ -75,11 +107,59 @@ else
         Categories = await Db.Categories
             .Where(c => c.IsVisible)
             .OrderBy(c => c.SortOrder)
+            .Include(c => c.Translations)
             .Include(c => c.Items.OrderBy(i => i.SortOrder).ThenBy(i => i.Name))
+                .ThenInclude(i => i.Translations)
+            .Include(c => c.Items).ThenInclude(i => i.Images)
+            .Include(c => c.Items).ThenInclude(i => i.Video)
             .AsSplitQuery()
             .AsNoTracking()
             .ToListAsync();
+
+        _culture = CultureInfo.CurrentUICulture.Name;
     }
 
-    private string FormatPrice(decimal price) => $"{price.ToString("N2", CultureInfo.CurrentCulture)} {Settings!.Currency}";
+    /// <summary>
+    /// Localized name: the culture's translation, falling back from "fa-IR" to
+    /// "fa" (neutral), then to the invariant value.
+    /// </summary>
+    private string NameOf(Category category) =>
+        FindTranslation(category.Translations)?.Name ?? category.Name;
+
+    private string NameOf(MenuItem item) =>
+        FindTranslation(item.Translations)?.Name ?? item.Name;
+
+    private string DescriptionOf(MenuItem item) =>
+        FindTranslation(item.Translations)?.Description ?? item.Description ?? string.Empty;
+
+    /// <summary>Per-culture price override, falling back to the invariant price.</summary>
+    private decimal PriceOf(MenuItem item) =>
+        FindTranslation(item.Translations)?.Price ?? item.Price;
+
+    private MenuItemTranslation? FindTranslation(List<MenuItemTranslation> translations)
+    {
+        if (string.IsNullOrEmpty(_culture)) return null;
+        return translations.FirstOrDefault(t => t.Culture == _culture)
+            ?? translations.FirstOrDefault(t => _culture.StartsWith(t.Culture + "-"));
+    }
+
+    private CategoryTranslation? FindTranslation(List<CategoryTranslation> translations)
+    {
+        if (string.IsNullOrEmpty(_culture)) return null;
+        return translations.FirstOrDefault(t => t.Culture == _culture)
+            ?? translations.FirstOrDefault(t => _culture.StartsWith(t.Culture + "-"));
+    }
+
+    /// <summary>Primary image first, then the ordered gallery images.</summary>
+    private static List<string> GalleryOf(MenuItem item)
+    {
+        var urls = new List<string>();
+        if (!string.IsNullOrEmpty(item.ImageUrl))
+        {
+            urls.Add(item.ImageUrl);
+        }
+        urls.AddRange(item.Images.OrderBy(i => i.SortOrder).ThenBy(i => i.Id).Select(i => i.Url));
+        return urls;
+    }
+
 }

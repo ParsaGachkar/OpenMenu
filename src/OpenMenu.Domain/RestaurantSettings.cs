@@ -19,4 +19,10 @@ public class RestaurantSettings
 
     /// <summary>Optional override for the theme's primary color (CSS color, e.g. "#7c3aed"). Null keeps the theme default.</summary>
     public string? PrimaryColor { get; set; }
+
+    /// <summary>Culture used when the visitor has no preference, e.g. "en". One of SupportedCultures.</summary>
+    public string DefaultCulture { get; set; } = "en";
+
+    /// <summary>Cultures visitors can pick, comma-separated, e.g. "en,fa". Comma-split on read; keep lowercase.</summary>
+    public string EnabledCultures { get; set; } = "en,fa,tr,ar";
 }

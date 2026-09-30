@@ -1,3 +1,4 @@
+@using OpenMenu.Application.Shared
 @page "/admin/menu/new"
 @page "/admin/menu/{id:int}/edit"
 @attribute [Authorize]
@@ -6,6 +7,7 @@
 @inject IAdminApi Api
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResource> L
+@inject IJSRuntime JS
 
 <PageTitle>@(IsNew ? "New item" : "Edit item")</PageTitle>
 
@@ -60,17 +62,97 @@
                     <span class="label-text">@(L["Available"])</span>
                 </label>
 
-                <div class="form-control w-full">
-                    <span class="label-text mb-1">@(L["ImageUrl"]) (≤ 2 MB)</span>
-                    <InputFile OnChange="OnImageSelected" accept="image/*" class="file-input file-input-bordered w-full" />
-                    @if (!string.IsNullOrEmpty(_model.ImageUrl))
-                    {
-                        <div class="mt-2 flex items-center gap-3">
-                            <img src="@_model.ImageUrl" alt="Menu item" class="w-16 h-16 rounded object-cover" />
-                            <button type="button" class="btn btn-ghost btn-xs" @onclick="RemoveImage">Remove image</button>
+                @* ---- Photos: gallery UX. Cover first; pending uploads shown
+                     before save; stored gallery images after save. ---- *@
+                <div class="card bg-base-100 border border-base-300">
+                    <div class="card-body gap-3 p-4" data-gallery>
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium">@(L["Photos"])</span>
+                            <span class="text-xs text-base-content/60">@(L["PhotosHint"])</span>
                         </div>
-                    }
+
+                        @if (GalleryUrls.Count > 0)
+                        {
+                            <div class="flex flex-wrap gap-3">
+                                @foreach (var (url, index) in GalleryUrls.Select((u, i) => (u, i)))
+                                {
+                                    <div class="relative" data-photo>
+                                        <img src="@url" alt="Photo @(index + 1)" class="w-20 h-20 rounded object-cover @(index == 0 ? "ring-2 ring-primary" : "")" />
+                                        @if (index == 0)
+                                        {
+                                            <span data-cover class="absolute bottom-0 left-0 badge badge-primary badge-xs">@(L["Cover"])</span>
+                                        }
+                                        <button type="button" aria-label="Remove photo" class="btn btn-error btn-xs absolute -top-2 -right-2 rounded-full w-5 h-5 p-0"
+                                                @onclick="() => RemovePhotoAsync(index)">×</button>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <InputFile OnChange="OnPhotosSelected" accept="image/*" multiple
+                                   class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
+                        @if (_uploadingPhotos)
+                        {
+                            <span class="loading loading-dots loading-sm"></span>
+                        }
+                    </div>
                 </div>
+
+                @* ---- Video (saved with the item) ---- *@
+                @if (!IsNew)
+                {
+                    <div class="form-control w-full">
+                        <span class="label-text mb-1">@(L["Video"]) (≤ 50 MB)</span>
+                        @if (_video is not null)
+                        {
+                            <div class="mb-2">
+                                <video src="@_video.Url" controls data-video-editor class="rounded w-full max-w-xs"></video>
+                                <button type="button" class="btn btn-ghost btn-xs mt-1" @onclick="RemoveVideoAsync">Remove video</button>
+                            </div>
+                        }
+                        <InputFile OnChange="OnVideoSelected" accept="video/*" class="file-input file-input-bordered file-input-sm w-full" />
+                    </div>
+                }
+
+                @* ---- Per-culture translations: one tab per enabled culture. ---- *@
+                @if (!IsNew && _enabledCultures.Length > 0)
+                {
+                    <div class="divider my-1"></div>
+                    <h2 class="font-semibold">@(L["TranslationsHeading"])</h2>
+                    <div role="tablist" class="tabs tabs-boxed">
+                        @foreach (var culture in _enabledCultures)
+                        {
+                            <a role="tab" class="tab @(culture == _translationCulture ? "tab-active" : "")"
+                               @onclick="() => SelectCultureAsync(culture)">@NativeCultureName(culture)</a>
+                        }
+                    </div>
+                    <div class="grid gap-3 mt-2">
+                        <label class="form-control w-full">
+                            <span class="label-text mb-1">@(L["Name"]) (@NativeCultureName(_translationCulture))</span>
+                            <InputText @bind-Value="_translation.Name" class="input input-bordered w-full" maxlength="200"
+                                       placeholder="@_model.Name" />
+                        </label>
+                        <label class="form-control w-full">
+                            <span class="label-text mb-1">@(L["Description"]) (@NativeCultureName(_translationCulture))</span>
+                            <InputTextArea @bind-Value="_translation.Description" class="textarea textarea-bordered w-full" rows="2" maxlength="2000"
+                                           placeholder="@_model.Description" />
+                        </label>
+                        <label class="form-control w-full">
+                            <span class="label-text mb-1">@(L["Price"]) (@NativeCultureName(_translationCulture))</span>
+                            <InputNumber @bind-Value="_translation.Price" class="input input-bordered w-full" step="0.01" min="0"
+                                         placeholder="@_model.Price.ToString("0.##")" />
+                            <span class="label-text-alt text-base-content/60">@(L["TranslationPriceHint"])</span>
+                        </label>
+                        <div>
+                            <button type="button" class="btn btn-outline btn-sm" disabled="@_savingTranslation"
+                                    @onclick="SaveTranslationAsync">@(L["SaveTranslation"])</button>
+                        </div>
+                    </div>
+                }
+                else if (IsNew)
+                {
+                    <span class="label-text-alt text-base-content/60">@(L["TranslationsAfterSaveHint"])</span>
+                }
 
                 <div class="card-actions justify-end mt-2">
                     <NavLink href="/admin/menu" class="btn btn-ghost">@(L["Cancel"])</NavLink>
@@ -87,10 +169,17 @@
     private bool IsNew => Id is null or 0;
 
     private MenuItemFormModel _model = new();
-    private OpenMenu.Domain.CategoryDto[]? _categories;
+    private OpenMenu.Application.Shared.CategoryDto[]? _categories;
     private string? _error;
     private bool _saving;
     private bool _uploading;
+
+    private MenuItemImage[] _images = [];
+    private MenuItemVideo? _video;
+    private string[] _enabledCultures = [];
+    private string _translationCulture = "en";
+    private MenuItemTranslationFormModel _translation = new();
+    private bool _savingTranslation;
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,30 +202,146 @@
                     IsAvailable = item.IsAvailable,
                 };
             }
+
+            // Gallery, video and per-culture content live on the saved item.
+            _images = await Api.GetMenuItemImagesAsync(Id!.Value);
+            _video = await Api.GetMenuItemVideoAsync(Id!.Value);
+
+            var settings = await Api.GetPublicSettingsAsync();
+            if (settings is not null)
+            {
+                _enabledCultures = SupportedCultures.SplitEnabled(settings.EnabledCultures, settings.DefaultCulture);
+                _translationCulture = _enabledCultures[0];
+                await LoadTranslationAsync();
+            }
         }
     }
 
-    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    private async Task LoadTranslationAsync()
     {
-        _error = null;
-        _uploading = true;
+        var translations = await Api.GetMenuItemTranslationsAsync(Id!.Value);
+        var existing = translations.FirstOrDefault(t => t.Culture == _translationCulture);
+        _translation = new MenuItemTranslationFormModel
+        {
+            Name = existing?.Name ?? string.Empty,
+            Description = existing?.Description ?? string.Empty,
+            Price = existing?.Price,
+        };
+    }
+
+    private async Task SelectCultureAsync(string culture)
+    {
+        if (culture == _translationCulture)
+        {
+            return;
+        }
+        _translationCulture = culture;
+        await LoadTranslationAsync();
+    }
+
+    private async Task SaveTranslationAsync()
+    {
+        _savingTranslation = true;
         try
         {
-            // Small files only (server enforces 2 MB); read into memory per the
-            // documented small-file pattern.
-            const long maxFileSize = 2 * 1024 * 1024;
-            await using var stream = e.File.OpenReadStream(maxFileSize);
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
+            var result = await Api.SaveMenuItemTranslationAsync(Id!.Value, new MenuItemTranslationInput(
+                _translationCulture,
+                string.IsNullOrWhiteSpace(_translation.Name) ? null : _translation.Name,
+                string.IsNullOrWhiteSpace(_translation.Description) ? null : _translation.Description,
+                _translation.Price));
 
-            var result = await Api.UploadImageAsync(ms.ToArray(), e.File.ContentType, e.File.Name);
-            if (result is null)
+            if (!result.Success)
             {
-                _error = "Image upload failed (only images up to 2 MB are allowed).";
-                return;
+                _error = result.Error;
+            }
+        }
+        finally
+        {
+            _savingTranslation = false;
+        }
+    }
+
+    // Pending photos (uploaded but not saved) + saved gallery + cover. The
+    // first URL shown is always the cover.
+    private List<string> _pendingPhotos = [];
+    private bool _uploadingPhotos;
+
+    private List<string> GalleryUrls
+    {
+        get
+        {
+            var urls = new List<string>();
+            if (!string.IsNullOrEmpty(_model.ImageUrl))
+            {
+                urls.Add(_model.ImageUrl);
+            }
+            else if (_pendingPhotos.Count > 0)
+            {
+                urls.Add(_pendingPhotos[0]);
+            }
+            if (!string.IsNullOrEmpty(_model.ImageUrl) && _pendingPhotos.Count > 0)
+            {
+                urls.AddRange(_pendingPhotos);
+            }
+            urls.AddRange(_images.Select(i => i.Url));
+            return urls;
+        }
+    }
+
+    private async Task OnPhotosSelected(InputFileChangeEventArgs e)
+    {
+        _error = null;
+        _uploadingPhotos = true;
+        try
+        {
+            const long maxFileSize = 2 * 1024 * 1024;
+            foreach (var file in e.GetMultipleFiles(10))
+            {
+                await using var stream = file.OpenReadStream(maxFileSize);
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+
+                var upload = await Api.UploadImageAsync(ms.ToArray(), file.ContentType, file.Name);
+                if (upload is null)
+                {
+                    _error = "Image upload failed (only images up to 2 MB are allowed).";
+                    continue;
+                }
+
+                if (IsNew || string.IsNullOrEmpty(_model.ImageUrl))
+                {
+                    // First photo becomes the cover; on a new item it just waits
+                    // for Save (saved into ImageUrl), on an existing one it
+                    // replaces an empty cover.
+                    if (IsNew)
+                    {
+                        _pendingPhotos.Add(upload.Url);
+                    }
+                    else
+                    {
+                        _model.ImageUrl = upload.Url;
+                    }
+                }
+                else if (!IsNew)
+                {
+                    var result = await Api.AddMenuItemImageAsync(Id!.Value, upload.Url);
+                    if (result.Success)
+                    {
+                        _images = await Api.GetMenuItemImagesAsync(Id.Value);
+                    }
+                    else
+                    {
+                        _error = result.Error;
+                    }
+                }
             }
 
-            _model.ImageUrl = result.Url;
+            // Cover semantics for new items: first pending photo is the cover.
+            if (IsNew && string.IsNullOrEmpty(_model.ImageUrl) && _pendingPhotos.Count > 0)
+            {
+                _model.ImageUrl = _pendingPhotos[0];
+                _pendingPhotos.RemoveAt(0);
+            }
         }
         catch
         {
@@ -144,11 +349,99 @@
         }
         finally
         {
+            _uploadingPhotos = false;
+        }
+    }
+
+    private async Task RemovePhotoAsync(int index)
+    {
+        var url = GalleryUrls[index];
+
+        if (!await JS.InvokeAsync<bool>("confirm", L["ConfirmDeleteImage"].Value))
+        {
+            return;
+        }
+
+        if (url == _model.ImageUrl)
+        {
+            _model.ImageUrl = null;
+            // Promote the next pending photo to cover.
+            if (_pendingPhotos.Count > 0)
+            {
+                _model.ImageUrl = _pendingPhotos[0];
+                _pendingPhotos.RemoveAt(0);
+            }
+            return;
+        }
+
+        var saved = _images.FirstOrDefault(i => i.Url == url);
+        if (saved is not null)
+        {
+            if ((await Api.DeleteMenuItemImageAsync(saved.Id)).Success)
+            {
+                _images = await Api.GetMenuItemImagesAsync(Id!.Value);
+            }
+            return;
+        }
+
+        _pendingPhotos.Remove(url);
+        if (!IsNew && string.IsNullOrEmpty(_model.ImageUrl) && _pendingPhotos.Count > 0)
+        {
+            _model.ImageUrl = _pendingPhotos[0];
+            _pendingPhotos.RemoveAt(0);
+        }
+    }
+
+    private async Task OnVideoSelected(InputFileChangeEventArgs e)
+    {
+        _error = null;
+        _uploading = true;
+        try
+        {
+            const long maxFileSize = 50 * 1024 * 1024;
+            await using var stream = e.File.OpenReadStream(maxFileSize);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+
+            var upload = await Api.UploadVideoAsync(ms.ToArray(), e.File.ContentType, e.File.Name);
+            if (upload is null)
+            {
+                _error = "Video upload failed (only videos up to 50 MB are allowed).";
+                return;
+            }
+
+            var result = await Api.SetMenuItemVideoAsync(Id!.Value, new MenuItemVideoInput(upload.Url, e.File.ContentType));
+            if (result.Success)
+            {
+                _video = await Api.GetMenuItemVideoAsync(Id!.Value);
+            }
+            else
+            {
+                _error = result.Error;
+            }
+        }
+        catch
+        {
+            _error = "Video upload failed (only videos up to 50 MB are allowed).";
+        }
+        finally
+        {
             _uploading = false;
         }
     }
 
-    private void RemoveImage() => _model.ImageUrl = null;
+    private async Task RemoveVideoAsync()
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", L["ConfirmDeleteVideo"].Value))
+        {
+            return;
+        }
+
+        if ((await Api.SetMenuItemVideoAsync(Id!.Value, null)).Success)
+        {
+            _video = null;
+        }
+    }
 
     private async Task SaveAsync()
     {
@@ -176,6 +469,15 @@
         }
     }
 
+    private static string NativeCultureName(string culture) => culture switch
+    {
+        "en" => "English",
+        "fa" => "فارسی",
+        "tr" => "Türkçe",
+        "ar" => "العربية",
+        _ => culture,
+    };
+
     private sealed class MenuItemFormModel
     {
         [Range(1, int.MaxValue, ErrorMessageResourceType = typeof(SharedResource), ErrorMessageResourceName = nameof(SharedResource.CategoryRequired))]
@@ -197,5 +499,12 @@
         public int SortOrder { get; set; }
 
         public bool IsAvailable { get; set; } = true;
+    }
+
+    private sealed class MenuItemTranslationFormModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal? Price { get; set; }
     }
 }

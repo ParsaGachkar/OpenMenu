@@ -1,0 +1,148 @@
+@page "/menu/item/{Id:int}"
+@using OpenMenu.Application.Shared
+@inject AppDbContext Db
+@inject IStringLocalizer<SharedResource> L
+@attribute [StreamRendering]
+
+<PageTitle>@(Item is null ? L["Menu"] : $"{NameOf(Item)} — {Settings?.Name}")</PageTitle>
+
+@if (Item is null)
+{
+    <div class="alert alert-warning">
+        <span>@(L["ItemNotFound"])</span>
+    </div>
+}
+else
+{
+    <div class="max-w-2xl mx-auto">
+        <NavLink href="@BackUrl" class="btn btn-ghost btn-sm mb-4">
+            ← @(L["BackToMenu"])
+        </NavLink>
+
+        <article class="card bg-base-200 shadow-sm">
+            @if (Gallery.Count > 0)
+            {
+                <figure>
+                    <img src="@Gallery[0]" alt="@NameOf(Item)" class="w-full max-h-96 object-cover rounded-t-box" />
+                </figure>
+            }
+
+            <div class="card-body gap-4">
+                <div class="flex items-start justify-between gap-3">
+                    <h1 class="text-2xl font-bold">@NameOf(Item)</h1>
+                    <span data-price class="text-xl font-semibold whitespace-nowrap">
+                        @(PriceFormatter.Format(PriceOf(Item), Settings?.Currency))
+                    </span>
+                </div>
+
+                @if (!string.IsNullOrEmpty(DescriptionOf(Item)))
+                {
+                    <p class="text-base-content/70">@DescriptionOf(Item)</p>
+                }
+
+                @if (!Item.IsAvailable)
+                {
+                    <div><span class="badge badge-ghost">@(L["SoldOut"])</span></div>
+                }
+
+                @* Remaining gallery photos (the first is the cover above). *@
+                @if (Gallery.Count > 1)
+                {
+                    <div class="flex flex-wrap gap-3" data-gallery>
+                        @foreach (var url in Gallery.Skip(1))
+                        {
+                            <img src="@url" alt="@NameOf(Item)" class="w-24 h-24 rounded object-cover" loading="lazy" />
+                        }
+                    </div>
+                }
+
+                @if (Item.Video is not null)
+                {
+                    <div data-video>
+                        <video src="@Item.Video.Url" controls preload="metadata" class="rounded w-full"></video>
+                    </div>
+                }
+
+                @if (Category is not null)
+                {
+                    <div class="text-sm text-base-content/60">
+                        @(L["Category"]): <span class="font-medium">@NameOf(Category)</span>
+                    </div>
+                }
+            </div>
+        </article>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private RestaurantSettings? Settings;
+    private MenuItem? Item;
+    private Category? Category;
+    private List<string> Gallery = [];
+    private string BackUrl = "/";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Settings = await Db.RestaurantSettings.AsNoTracking().FirstOrDefaultAsync();
+
+        Item = await Db.MenuItems
+            .AsNoTracking()
+            .Include(i => i.Translations)
+            .Include(i => i.Images)
+            .Include(i => i.Video)
+            .FirstOrDefaultAsync(i => i.Id == Id);
+
+        if (Item is not null)
+        {
+            Gallery = GalleryOf(Item);
+            Category = await Db.Categories
+                .AsNoTracking()
+                .Include(c => c.Translations)
+                .FirstOrDefaultAsync(c => c.Id == Item.CategoryId);
+        }
+
+        _culture = CultureInfo.CurrentUICulture.Name;
+    }
+
+    private string? _culture;
+
+    private string NameOf(MenuItem item) =>
+        FindTranslation(item.Translations)?.Name ?? item.Name;
+
+    private string NameOf(Category category) =>
+        FindTranslation(category.Translations)?.Name ?? category.Name;
+
+    private string DescriptionOf(MenuItem item) =>
+        FindTranslation(item.Translations)?.Description ?? item.Description ?? string.Empty;
+
+    private decimal PriceOf(MenuItem item) =>
+        FindTranslation(item.Translations)?.Price ?? item.Price;
+
+    private MenuItemTranslation? FindTranslation(List<MenuItemTranslation> translations)
+    {
+        if (string.IsNullOrEmpty(_culture)) return null;
+        return translations.FirstOrDefault(t => t.Culture == _culture)
+            ?? translations.FirstOrDefault(t => _culture.StartsWith(t.Culture + "-"));
+    }
+
+    private CategoryTranslation? FindTranslation(List<CategoryTranslation> translations)
+    {
+        if (string.IsNullOrEmpty(_culture)) return null;
+        return translations.FirstOrDefault(t => t.Culture == _culture)
+            ?? translations.FirstOrDefault(t => _culture.StartsWith(t.Culture + "-"));
+    }
+
+    /// <summary>Primary image first, then the ordered gallery images.</summary>
+    private static List<string> GalleryOf(MenuItem item)
+    {
+        var urls = new List<string>();
+        if (!string.IsNullOrEmpty(item.ImageUrl))
+        {
+            urls.Add(item.ImageUrl);
+        }
+        urls.AddRange(item.Images.OrderBy(i => i.SortOrder).ThenBy(i => i.Id).Select(i => i.Url));
+        return urls;
+    }
+}

@@ -2,7 +2,9 @@
 @inject IStringLocalizer<SharedResource> L
 
 @* Client-side admin layout. Rendered inside pages that use InteractiveAuto,
-   so no render mode is needed here. *@
+   so no render mode is needed here. The language switcher intentionally shows
+   every culture: admins manage translations for all of them, and /culture/set
+   still enforces the enabled set. The public layout filters instead. *@
 <div class="min-h-screen flex flex-col bg-base-100">
     <header class="navbar bg-base-200 px-4">
         <div class="navbar-start">
@@ -34,3 +36,4 @@
         @Body
     </main>
 </div>
+

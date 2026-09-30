@@ -13,4 +13,7 @@ public class Category
     public bool IsVisible { get; set; } = true;
 
     public List<MenuItem> Items { get; set; } = [];
+
+    /// <summary>Per-culture translations; the invariant values above are the fallback.</summary>
+    public List<CategoryTranslation> Translations { get; set; } = [];
 }

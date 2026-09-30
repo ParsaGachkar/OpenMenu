@@ -22,6 +22,9 @@ jobs:
       - name: Unit tests
         run: dotnet test tests/OpenMenu.Tests --no-build --verbosity normal
 
+      - name: Component tests (bUnit)
+        run: dotnet test tests/OpenMenu.ComponentTests --no-build --verbosity normal
+
       - name: Start stack (app + PostgreSQL)
         run: docker compose up -d --build
 
@@ -35,9 +38,16 @@ jobs:
           done
           echo "App did not become ready in time"; docker compose logs app; exit 1
 
+      - name: Integration tests (admin JSON APIs)
+        # In-memory SQLite replaces PostgreSQL; no external dependency needed.
+        run: dotnet test tests/OpenMenu.IntegrationTests --no-build --verbosity normal
+
       - name: End-to-end tests (Playwright)
         env:
           OPENMENU_BASEURL: http://localhost:8088
+          # CI runners boot WebAssembly slower than dev machines; give locator
+          # and expect timeouts headroom via the fixture's OPENMENU_TIMEOUT.
+          OPENMENU_TIMEOUT: "45"
         run: dotnet test tests/OpenMenu.E2ETests --no-build --verbosity normal
 
       - name: Upload Playwright artifacts on failure

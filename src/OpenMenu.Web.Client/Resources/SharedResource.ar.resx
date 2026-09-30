@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -251,5 +251,65 @@
   </data>
   <data name="CreateUser" xml:space="preserve">
     <value>إنشاء مستخدم</value>
+  </data>
+  <data name="CulturesHeading" xml:space="preserve">
+    <value>اللغات</value>
+  </data>
+  <data name="DefaultCulture" xml:space="preserve">
+    <value>اللغة الافتراضية</value>
+  </data>
+  <data name="DefaultCultureHint" xml:space="preserve">
+    <value>تُظهر للزوار دون تفضيل لغة.</value>
+  </data>
+  <data name="EnabledCultures" xml:space="preserve">
+    <value>اللغات المفعّلة</value>
+  </data>
+  <data name="EnabledCulturesHint" xml:space="preserve">
+    <value>تظهر هذه اللغات فقط في المبدّل؛ لا يمكن تعطيل اللغة الافتراضية.</value>
+  </data>
+  <data name="GalleryImages" xml:space="preserve">
+    <value>صور إضافية</value>
+  </data>
+  <data name="GalleryAfterSaveHint" xml:space="preserve">
+    <value>يمكن إضافة صور ومقاطع فيديو إضافية بعد الحفظ.</value>
+  </data>
+  <data name="SaveTranslation" xml:space="preserve">
+    <value>حفظ الترجمة</value>
+  </data>
+  <data name="TranslationPriceHint" xml:space="preserve">
+    <value>اتركه فارغًا لاستخدام السعر الرئيسي.</value>
+  </data>
+  <data name="TranslationsHeading" xml:space="preserve">
+    <value>الترجمات</value>
+  </data>
+  <data name="Video" xml:space="preserve">
+    <value>فيديو</value>
+  </data>
+  <data name="ConfirmDeleteImage" xml:space="preserve">
+    <value>هل حذف هذه الصورة؟</value>
+  </data>
+  <data name="ConfirmDeleteVideo" xml:space="preserve">
+    <value>هل حذف هذا الفيديو؟</value>
+  </data>
+  <data name="Photos" xml:space="preserve">
+    <value>الصور</value>
+  </data>
+  <data name="PhotosHint" xml:space="preserve">
+    <value>الصورة الأولى هي الغلاف.</value>
+  </data>
+  <data name="Cover" xml:space="preserve">
+    <value>الغلاف</value>
+  </data>
+  <data name="TranslationsAfterSaveHint" xml:space="preserve">
+    <value>يمكن إضافة الترجمات بعد الحفظ.</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>التفاصيل</value>
+  </data>
+  <data name="QrHeading" xml:space="preserve">
+    <value>رمز QR للقائمة</value>
+  </data>
+  <data name="QrHint" xml:space="preserve">
+    <value>امسح لفتح القائمة العامة. اطبعه للاستخدام على الطاولات والمنشورات.</value>
   </data>
 </root>

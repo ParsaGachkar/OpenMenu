@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\OpenMenu.Application\OpenMenu.Application.csproj" />
+    <ProjectReference Include="..\..\src\OpenMenu.Application.Shared\OpenMenu.Application.Shared.csproj" />
     <ProjectReference Include="..\..\src\OpenMenu.Infrastructure\OpenMenu.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\OpenMenu.Domain\OpenMenu.Domain.csproj" />
   </ItemGroup>

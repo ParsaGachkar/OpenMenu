@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -251,5 +251,65 @@
   </data>
   <data name="CreateUser" xml:space="preserve">
     <value>Kullanıcı oluştur</value>
+  </data>
+  <data name="CulturesHeading" xml:space="preserve">
+    <value>Diller</value>
+  </data>
+  <data name="DefaultCulture" xml:space="preserve">
+    <value>Varsayılan dil</value>
+  </data>
+  <data name="DefaultCultureHint" xml:space="preserve">
+    <value>Tercih yapılmadığında gösterilir.</value>
+  </data>
+  <data name="EnabledCultures" xml:space="preserve">
+    <value>Etkin diller</value>
+  </data>
+  <data name="EnabledCulturesHint" xml:space="preserve">
+    <value>Yalnızca bu diller seçicide görünür; varsayılan devre dışı bırakılamaz.</value>
+  </data>
+  <data name="GalleryImages" xml:space="preserve">
+    <value>Daha fazla görsel</value>
+  </data>
+  <data name="GalleryAfterSaveHint" xml:space="preserve">
+    <value>Kaydettikten sonra ek görsel ve video eklenebilir.</value>
+  </data>
+  <data name="SaveTranslation" xml:space="preserve">
+    <value>Çeviriyi kaydet</value>
+  </data>
+  <data name="TranslationPriceHint" xml:space="preserve">
+    <value>Ana fiyatı kullanmak için boş bırakın.</value>
+  </data>
+  <data name="TranslationsHeading" xml:space="preserve">
+    <value>Çeviriler</value>
+  </data>
+  <data name="Video" xml:space="preserve">
+    <value>Video</value>
+  </data>
+  <data name="ConfirmDeleteImage" xml:space="preserve">
+    <value>Bu görsel silinsin mi?</value>
+  </data>
+  <data name="ConfirmDeleteVideo" xml:space="preserve">
+    <value>Bu video silinsin mi?</value>
+  </data>
+  <data name="Photos" xml:space="preserve">
+    <value>Fotoğraflar</value>
+  </data>
+  <data name="PhotosHint" xml:space="preserve">
+    <value>İlk fotoğraf kapaktır.</value>
+  </data>
+  <data name="Cover" xml:space="preserve">
+    <value>Kapak</value>
+  </data>
+  <data name="TranslationsAfterSaveHint" xml:space="preserve">
+    <value>Çeviriler kaydettikten sonra eklenebilir.</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>Ayrıntılar</value>
+  </data>
+  <data name="QrHeading" xml:space="preserve">
+    <value>Menü QR kodu</value>
+  </data>
+  <data name="QrHint" xml:space="preserve">
+    <value>Herkese açık menüyü açmak için tarayın. Masa tenteleri ve broşürler için yazdırın.</value>
   </data>
 </root>

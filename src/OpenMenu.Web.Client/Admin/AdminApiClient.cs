@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using OpenMenu.Domain;
+using OpenMenu.Application.Shared;
 
 namespace OpenMenu.Web.Client.Admin;
 
@@ -55,18 +56,61 @@ public sealed class AdminApiClient(HttpClient http) : IAdminApi
     public async Task<ApiResult> SaveSettingsAsync(SettingsInput input) =>
         await WriteAsync(() => http.PutAsJsonAsync("api/admin/settings", input));
 
-    public async Task<UploadResult?> UploadImageAsync(byte[] data, string contentType, string fileName)
+    public async Task<UploadResult?> UploadImageAsync(byte[] data, string contentType, string fileName) =>
+        await UploadFileAsync("api/admin/images", data, contentType, fileName);
+
+    public async Task<UploadResult?> UploadVideoAsync(byte[] data, string contentType, string fileName) =>
+        await UploadFileAsync("api/admin/videos", data, contentType, fileName);
+
+    private async Task<UploadResult?> UploadFileAsync(string url, byte[] data, string contentType, string fileName)
     {
         using var content = new MultipartFormDataContent();
         var fileContent = new ByteArrayContent(data);
         fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
         content.Add(fileContent, "file", fileName);
 
-        using var response = await http.PostAsync("api/admin/images", content);
+        using var response = await http.PostAsync(url, content);
         return response.IsSuccessStatusCode
             ? await response.Content.ReadFromJsonAsync<UploadResult>()
             : null;
     }
+
+    // ---- Per-culture content (features 1-3) ----
+
+    public async Task<CategoryTranslation[]> GetCategoryTranslationsAsync(int categoryId) =>
+        await http.GetFromJsonAsync<CategoryTranslation[]>($"api/admin/categories/{categoryId}/translations") ?? [];
+
+    public Task<ApiResult> SaveCategoryTranslationAsync(int categoryId, CategoryTranslationInput input) =>
+        WriteAsync(() => http.PutAsJsonAsync($"api/admin/categories/{categoryId}/translations", input));
+
+    public async Task<MenuItemTranslation[]> GetMenuItemTranslationsAsync(int menuItemId) =>
+        await http.GetFromJsonAsync<MenuItemTranslation[]>($"api/admin/menu-items/{menuItemId}/translations") ?? [];
+
+    public Task<ApiResult> SaveMenuItemTranslationAsync(int menuItemId, MenuItemTranslationInput input) =>
+        WriteAsync(() => http.PutAsJsonAsync($"api/admin/menu-items/{menuItemId}/translations", input));
+
+    // ---- Multi-image gallery and video (features 4-5) ----
+
+    public async Task<MenuItemImage[]> GetMenuItemImagesAsync(int menuItemId) =>
+        await http.GetFromJsonAsync<MenuItemImage[]>($"api/admin/menu-items/{menuItemId}/images") ?? [];
+
+    public Task<ApiResult> AddMenuItemImageAsync(int menuItemId, string url) =>
+        WriteAsync(() => http.PostAsJsonAsync($"api/admin/menu-items/{menuItemId}/images", new MenuItemImageInput(url, 0)));
+
+    public Task<ApiResult> DeleteMenuItemImageAsync(int imageId) =>
+        DeleteAsync($"api/admin/menu-items/images/{imageId}/delete");
+
+    public async Task<MenuItemVideo?> GetMenuItemVideoAsync(int menuItemId)
+    {
+        using var response = await http.GetAsync($"api/admin/menu-items/{menuItemId}/video");
+        if (!response.IsSuccessStatusCode || response.Content.Headers.ContentLength is 0)
+        {
+            return null;
+        }
+        return await response.Content.ReadFromJsonAsync<MenuItemVideo?>();
+    }
+    public Task<ApiResult> SetMenuItemVideoAsync(int menuItemId, MenuItemVideoInput? input) =>
+        WriteAsync(() => http.PutAsJsonAsync($"api/admin/menu-items/{menuItemId}/video", input));
 
     private static async Task<ApiResult> WriteAsync(Func<Task<HttpResponseMessage>> send)
     {

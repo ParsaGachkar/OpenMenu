@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using OpenMenu.Domain;
+using OpenMenu.Application.Shared;
 using OpenMenu.Infrastructure;
-using OpenMenu.Infrastructure.Admin;
+using OpenMenu.Application.Admin;
 using OpenMenu.Infrastructure.Data;
 using OpenMenu.Web.Components;
+using QRCoder;
 using OpenMenu.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,13 @@ builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents()
         .AddInteractiveWebAssemblyComponents()
         .AddAuthenticationStateSerialization();
+
+// Videos up to 50 MB are uploaded through the JSON/multipart endpoints;
+// Kestrel's default 30 MB request body cap would kill them mid-flight.
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 52_428_800; // 50 MB + overhead
+});
 
 // Localization (https://learn.microsoft.com/aspnet/core/blazor/globalization-localization).
 builder.Services.AddLocalization();
@@ -73,11 +82,48 @@ if (!app.Environment.IsDevelopment())
 app.MapStaticAssets();
 
 // Request localization: honor the .AspNetCore.Culture cookie set by /culture/set,
-// falling back to Accept-Language and then English. Placed per docs immediately
-// after static files, before any component/endpoints rendering.
-var supportedCultures = new[] { "en", "fa", "tr", "ar" };
+// falling back to Accept-Language and then the restaurant's configured default
+// culture. Placed per docs immediately after static files, before any
+// component/endpoints rendering. The default is read from the single-row
+// RestaurantSettings (feature: admin-configurable default culture); an empty
+// database falls back to "en" so first boot still renders.
+string defaultCulture;
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Migrations must run before anything reads the new columns (the crash on
+    // boot in the first deploy of this feature was exactly this ordering bug).
+    // Integration tests swap the provider for in-memory SQLite (no external DB)
+    // and set Database:EnsureCreated — Npgsql migrations don't apply there.
+    if (!EF.IsDesignTime)
+    {
+        if (builder.Configuration.GetValue("Database:EnsureCreated", false))
+        {
+            await db.Database.EnsureCreatedAsync();
+        }
+        else
+        {
+            await db.Database.MigrateAsync();
+        }
+        await DbSeeder.SeedAsync(
+            db,
+            builder.Configuration["Seed:AdminUsername"] ?? "",
+            builder.Configuration["Seed:AdminPassword"] ?? "",
+            builder.Configuration.GetValue("Seed:DemoData", true));
+    }
+
+    defaultCulture = await db.RestaurantSettings.AsNoTracking()
+        .Select(s => s.DefaultCulture).FirstOrDefaultAsync() ?? "en";
+}
+if (!SupportedCultures.IsValid(defaultCulture))
+{
+    defaultCulture = "en";
+}
+
+var supportedCultures = SupportedCultures.All;
 var localizationOptions = new RequestLocalizationOptions()
-    .SetDefaultCulture(supportedCultures[0])
+    .SetDefaultCulture(defaultCulture)
     .AddSupportedCultures(supportedCultures)
     .AddSupportedUICultures(supportedCultures);
 app.UseRequestLocalization(localizationOptions);
@@ -105,10 +151,13 @@ app.MapPost("/logout", async (HttpContext ctx) =>
 
 // Culture selection (documented redirect-based approach): set the localization
 // cookie and return to the referring page. GET is safe here — this endpoint
-// only writes a preference cookie, never data.
-app.MapGet("/culture/set", (string culture, string? redirectTo, HttpContext ctx) =>
+// only writes a preference cookie, never data. Only cultures the restaurant
+// enabled are accepted (feature: enable/disable cultures).
+app.MapGet("/culture/set", async (string culture, string? redirectTo, HttpContext ctx, AppDbContext db) =>
 {
-    if (!supportedCultures.Contains(culture, StringComparer.OrdinalIgnoreCase))
+    var settings = await db.RestaurantSettings.AsNoTracking().FirstOrDefaultAsync();
+    var enabled = SupportedCultures.SplitEnabled(settings?.EnabledCultures, settings?.DefaultCulture ?? "en");
+    if (!enabled.Contains(SupportedCultures.Normalize(culture), StringComparer.OrdinalIgnoreCase))
     {
         return Results.BadRequest();
     }
@@ -194,6 +243,45 @@ app.MapGet("/api/public/settings", async (IAdminApi api) =>
     Results.Ok(await api.GetPublicSettingsAsync())
 );
 
+// Per-culture content translations (feature: localized menu).
+app.MapGet("/api/admin/categories/{id:int}/translations", async (int id, IAdminApi api) =>
+    Results.Ok(await api.GetCategoryTranslationsAsync(id))
+).RequireAuthorization("EditorOrAdmin");
+
+app.MapPut("/api/admin/categories/{id:int}/translations", async (int id, CategoryTranslationInput input, IAdminApi api) =>
+    ToHttpResult(await api.SaveCategoryTranslationAsync(id, input))
+).RequireAuthorization("EditorOrAdmin");
+
+app.MapGet("/api/admin/menu-items/{id:int}/translations", async (int id, IAdminApi api) =>
+    Results.Ok(await api.GetMenuItemTranslationsAsync(id))
+).RequireAuthorization("EditorOrAdmin");
+
+app.MapPut("/api/admin/menu-items/{id:int}/translations", async (int id, MenuItemTranslationInput input, IAdminApi api) =>
+    ToHttpResult(await api.SaveMenuItemTranslationAsync(id, input))
+).RequireAuthorization("EditorOrAdmin");
+
+// Multi-image gallery (feature: multiple images per menu item).
+app.MapGet("/api/admin/menu-items/{id:int}/images", async (int id, IAdminApi api) =>
+    Results.Ok(await api.GetMenuItemImagesAsync(id))
+).RequireAuthorization("EditorOrAdmin");
+
+app.MapPost("/api/admin/menu-items/{id:int}/images", async (int id, MenuItemImageInput input, IAdminApi api) =>
+    ToHttpResult(await api.AddMenuItemImageAsync(id, input.Url))
+).RequireAuthorization("EditorOrAdmin");
+
+app.MapPost("/api/admin/menu-items/images/{imageId:int}/delete", async (int imageId, IAdminApi api) =>
+    ToHttpResult(await api.DeleteMenuItemImageAsync(imageId))
+).RequireAuthorization("EditorOrAdmin");
+
+// Per-item video (feature: video support). Null body removes the video.
+app.MapGet("/api/admin/menu-items/{id:int}/video", async (int id, IAdminApi api) =>
+    Results.Ok(await api.GetMenuItemVideoAsync(id)) // null body (not 204): GetFromJsonAsync throws on empty
+).RequireAuthorization("EditorOrAdmin");
+
+app.MapPut("/api/admin/menu-items/{id:int}/video", async (int id, MenuItemVideoInput? input, IAdminApi api) =>
+    ToHttpResult(await api.SetMenuItemVideoAsync(id, input))
+).RequireAuthorization("EditorOrAdmin");
+
 // Image upload: small images into the database, returns the public URL.
 // Size/type are enforced inside IAdminApi; stored id is a random GUID, never
 // the client-supplied filename. DisableAntiforgery per the docs: multipart
@@ -209,6 +297,66 @@ app.MapPost("/api/admin/images", async (IFormFile file, IAdminApi api) =>
         : Results.Created(result.Url, result);
 }).DisableAntiforgery().RequireAuthorization("EditorOrAdmin");
 
+// Video upload: stored on the mounted media volume (never in the database —
+// large blobs belong on disk); the DB keeps only the MenuItemVideo metadata row.
+app.MapPost("/api/admin/videos", async (IFormFile file, IAdminApi api) =>
+{
+    await using var ms = new MemoryStream();
+    await file.OpenReadStream().CopyToAsync(ms);
+    var result = await api.UploadVideoAsync(ms.ToArray(), file.ContentType, file.FileName);
+    return result is null
+        ? Results.BadRequest(new { error = "Only videos up to 50 MB are allowed." })
+        : Results.Created(result.Url, result);
+})
+.DisableAntiforgery().RequireAuthorization("EditorOrAdmin");
+
+// ---- Public media serving: uploaded videos live on the media volume. Range
+//      requests are enabled so the browser can seek. ----
+app.MapGet("/media/videos/{name}", (string name) =>
+{
+    // Random-GUID names only; no path traversal.
+    if (name.Contains('/') || name.Contains("..") || !Guid.TryParse(Path.GetFileNameWithoutExtension(name), out _))
+    {
+        return Results.NotFound();
+    }
+
+    var path = Path.Combine(AppContext.BaseDirectory, "media", "videos", name);
+    if (!File.Exists(path))
+    {
+        return Results.NotFound();
+    }
+
+    // Content type from the extension the upload stored, not a hard-coded
+    // mp4: a webm served as video/mp4 will not play in some browsers.
+    var contentType = Path.GetExtension(path).ToLowerInvariant() switch
+    {
+        ".webm" => "video/webm",
+        ".ogv" => "video/ogg",
+        ".mov" => "video/quicktime",
+        ".m4v" => "video/x-m4v",
+        _ => "video/mp4",
+    };
+    return Results.File(path, contentType, enableRangeProcessing: true);
+});
+
+// ---- QR code (feature): PNG of the public menu URL for printing/table
+// tents. Computed from the request (host + path base) so it stays correct on
+// any deployment domain without extra configuration.
+app.MapGet("/qr/menu", (HttpRequest request) =>
+{
+    var menuUrl = $"{request.Scheme}://{request.Host}";
+    var pathBase = request.PathBase.Value;
+    if (!string.IsNullOrEmpty(pathBase))
+    {
+        menuUrl += pathBase;
+    }
+
+    using var generator = new QRCodeGenerator();
+    using var data = generator.CreateQrCode(menuUrl, QRCodeGenerator.ECCLevel.M);
+    var png = new PngByteQRCode(data).GetGraphic(pixelsPerModule: 8);
+    return Results.File(png, "image/png");
+});
+
 // ---- Public image serving: uploaded images and restaurant logo live in the
 //      database (small files, per the Blazor file-uploads guidance). ----
 app.MapGet("/images/{id:guid}", (Guid id, AppDbContext db) =>
@@ -219,22 +367,6 @@ app.MapGet("/images/{id:guid}", (Guid id, AppDbContext db) =>
         : Results.File(image.Data, image.ContentType);
 });
 
-// Apply migrations + seed (initial admin comes from configuration/env vars).
-// Skipped during EF design-time tooling, which executes Main up to Run().
-if (!EF.IsDesignTime)
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.MigrateAsync();
-        await DbSeeder.SeedAsync(
-            db,
-            builder.Configuration["Seed:AdminUsername"] ?? "",
-            builder.Configuration["Seed:AdminPassword"] ?? "",
-            builder.Configuration.GetValue("Seed:DemoData", true));
-    }
-}
-
 app.Run();
 
 // Maps the shared ApiResult onto an HTTP response for the JSON endpoints.
@@ -242,3 +374,7 @@ static IResult ToHttpResult(ApiResult result, string? createdUrl = null) =>
     result.Success
         ? (createdUrl is null ? Results.Ok() : Results.Created(createdUrl, result))
         : Results.BadRequest(new { error = result.Error });
+
+// Exposes the implicitly generated Program class to test projects
+// (WebApplicationFactory<Program>).
+public partial class Program;

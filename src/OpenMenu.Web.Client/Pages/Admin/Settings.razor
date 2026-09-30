@@ -1,3 +1,4 @@
+@using OpenMenu.Application.Shared
 @page "/admin/settings"
 @attribute [Authorize(Roles = "Admin")]
 @layout Layout.AdminLayout
@@ -80,20 +81,62 @@
                     </div>
                 </label>
 
+                <div class="divider my-1"></div>
+
+                <h2 class="font-semibold">@(L["CulturesHeading"])</h2>
+
+                <label class="form-control w-full">
+                    <span class="label-text mb-1">@(L["DefaultCulture"]) <span class="text-error">*</span></span>
+                    <InputSelect @bind-Value="_model.DefaultCulture" class="select select-bordered w-full">
+                        @foreach (var culture in _model.EnabledCultures)
+                        {
+                            <option value="@culture">@NativeName(culture)</option>
+                        }
+                    </InputSelect>
+                    <span class="label-text-alt text-base-content/60">@(L["DefaultCultureHint"])</span>
+                </label>
+
+                <div class="form-control w-full">
+                    <span class="label-text mb-1">@(L["EnabledCultures"])</span>
+                    <div class="flex flex-col gap-1">
+                        @foreach (var (culture, native) in AllCultures)
+                        {
+                            <label class="label cursor-pointer justify-start gap-3">
+                                <input type="checkbox" class="toggle toggle-primary toggle-sm"
+                                       checked="@_model.EnabledCultures.Contains(culture)"
+                                       @onchange="e => ToggleCulture(culture, (bool)(e.Value ?? false))" />
+                                <span class="label-text">@native <span class="opacity-50">(@culture)</span></span>
+                            </label>
+                        }
+                    </div>
+                    <span class="label-text-alt text-base-content/60">@(L["EnabledCulturesHint"])</span>
+                </div>
+
                 <div class="card-actions justify-end mt-2">
                     <button type="submit" class="btn btn-primary" disabled="@_saving">@(L["Save"])</button>
                 </div>
             </div>
         </div>
     </EditForm>
+
+    @* QR code of the public menu URL — print it and put it on the tables. *@
+    <div class="card bg-base-200 shadow-md mt-6" data-qr>
+        <div class="card-body gap-3">
+            <h2 class="card-title text-base">@(L["QrHeading"])</h2>
+            <p class="text-sm text-base-content/60">@(L["QrHint"])</p>
+            <img src="/qr/menu" alt="@(L["QrHeading"])" class="w-48 h-48" />
+        </div>
+    </div>
 </div>
 
 @code {
     // Common ISO 4217 codes; kept small on purpose for a single-restaurant app.
+    // TOMAN is not ISO 4217: Iranian restaurants quote prices in Toman, and the
+    // admin is responsible for entering menu prices in the selected unit.
     private static readonly (string Code, string Name)[] Currencies =
     [
         ("USD", "US Dollar"), ("EUR", "Euro"), ("GBP", "British Pound"),
-        ("IRR", "Iranian Rial"), ("TRY", "Turkish Lira"), ("AED", "UAE Dirham"),
+        ("IRR", "Iranian Rial"), ("TOMAN", "Iranian Toman"), ("TRY", "Turkish Lira"), ("AED", "UAE Dirham"),
         ("SAR", "Saudi Riyal"), ("IQD", "Iraqi Dinar"),
     ];
 
@@ -105,6 +148,12 @@
         "lofi", "pastel", "fantasy", "wireframe", "black", "luxury", "dracula",
         "cmyk", "autumn", "business", "acid", "lemonade", "night", "coffee",
         "winter", "dim", "nord", "sunset",
+    ];
+
+    // Every culture the app ships content for; the admin picks a subset.
+    private static readonly (string Culture, string Native)[] AllCultures =
+    [
+        ("en", "English"), ("fa", "فارسی"), ("tr", "Türkçe"), ("ar", "العربية"),
     ];
 
     private SettingsFormModel _model = new();
@@ -132,11 +181,26 @@
                 Currency = settings.Currency,
                 Theme = settings.Theme,
                 PrimaryColor = settings.PrimaryColor,
+                DefaultCulture = SupportedCultures.Normalize(settings.DefaultCulture),
+                EnabledCultures = SupportedCultures.SplitEnabled(settings.EnabledCultures, settings.DefaultCulture).ToList(),
             };
             _primaryColor = settings.PrimaryColor ?? "#570df8";
             _colorTouched = settings.PrimaryColor is not null;
         }
+
+        // The default culture must always stay among the enabled ones.
+        if (_model.EnabledCultures.Count == 0)
+        {
+            _model.EnabledCultures = ["en"];
+        }
+        if (!_model.EnabledCultures.Contains(_model.DefaultCulture))
+        {
+            _model.DefaultCulture = _model.EnabledCultures[0];
+        }
     }
+
+    private static string NativeName(string culture) =>
+        AllCultures.FirstOrDefault(c => c.Culture == culture).Native;
 
     private void OnPrimaryColorChanged(ChangeEventArgs e)
     {
@@ -148,6 +212,25 @@
     {
         _colorTouched = false;
         _model.PrimaryColor = null;
+    }
+
+    private void ToggleCulture(string culture, bool enabled)
+    {
+        if (enabled)
+        {
+            if (!_model.EnabledCultures.Contains(culture))
+            {
+                _model.EnabledCultures.Add(culture);
+            }
+        }
+        else if (_model.EnabledCultures.Count > 1) // never disable the last one
+        {
+            _model.EnabledCultures.Remove(culture);
+            if (_model.DefaultCulture == culture)
+            {
+                _model.DefaultCulture = _model.EnabledCultures[0];
+            }
+        }
     }
 
     private async Task OnLogoSelected(InputFileChangeEventArgs e)
@@ -186,7 +269,8 @@
             _model.PrimaryColor = _colorTouched ? _primaryColor : null;
             var result = await Api.SaveSettingsAsync(new SettingsInput(
                 _model.Name, _model.Description, _model.LogoUrl,
-                _model.Currency, _model.Theme, _model.PrimaryColor));
+                _model.Currency, _model.Theme, _model.PrimaryColor,
+                _model.DefaultCulture, string.Join(",", _model.EnabledCultures)));
 
             if (result.Success)
             {
@@ -222,5 +306,10 @@
         public string Theme { get; set; } = "light";
 
         public string? PrimaryColor { get; set; }
+
+        [Required]
+        public string DefaultCulture { get; set; } = "en";
+
+        public List<string> EnabledCultures { get; set; } = ["en", "fa", "tr", "ar"];
     }
 }

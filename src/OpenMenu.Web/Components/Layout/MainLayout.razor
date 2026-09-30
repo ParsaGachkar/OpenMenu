@@ -1,13 +1,28 @@
 @inherits LayoutComponentBase
+@using OpenMenu.Application.Shared
 @inject IStringLocalizer<SharedResource> L
+@inject AppDbContext Db
 
+@{
+    // Cultures the restaurant enabled (feature: enable/disable cultures). Read
+    // synchronously like App.razor does for the theme; fallback keeps the
+    // switcher full when settings are missing.
+    var cultureSettings = Db.RestaurantSettings.AsNoTracking().FirstOrDefault();
+    var enabledCultures = cultureSettings is null
+        ? null
+        : SupportedCultures.SplitEnabled(cultureSettings.EnabledCultures, cultureSettings.DefaultCulture);
+}
 <div class="min-h-screen flex flex-col bg-base-100">
     <header class="navbar bg-base-200 px-4">
         <div class="navbar-start">
             <NavLink href="/" class="btn btn-ghost text-lg font-semibold">OpenMenu</NavLink>
         </div>
         <div class="navbar-end gap-2">
-            <LanguageDropdown @rendermode="InteractiveServer" />
+            @* Static render: the dropdown is plain anchors, so it needs no
+               interactivity. A static render also guarantees the button label is
+               rebuilt from the request culture on every navigation — an
+               interactive island kept showing the previous language (bug fix). *@
+            <LanguageDropdown EnabledCultures="@enabledCultures" />
             <NavLink href="/login" class="btn btn-ghost btn-sm">@(L["StaffLogin"])</NavLink>
         </div>
     </header>
@@ -17,6 +32,8 @@
     </main>
 
     <footer class="footer footer-center bg-base-200 text-base-content/60 py-4 text-sm">
-        <p>@(L["PoweredByOpenMenu"])</p>
+        <p>
+            <a href="https://github.com/ParsaGachkar/OpenMenu" target="_blank" rel="noopener" class="link link-hover">@(L["PoweredByOpenMenu"])</a>
+        </p>
     </footer>
 </div>

@@ -3,17 +3,19 @@
    Cultures are plain anchors to /culture/set (redirect-based culture switching per
    https://learn.microsoft.com/aspnet/core/blazor/globalization-localization), so the
    component needs no interactivity: links work identically during prerendering, on
-   server circuits and on WebAssembly. *@
+   server circuits and on WebAssembly. Only cultures enabled in RestaurantSettings
+   are offered (feature: enable/disable cultures); hosts pass them in via
+   EnabledCultures, and the full list renders when no filter is provided. *@
 <div class="dropdown dropdown-end">
     <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
         @NativeNameOf(CurrentCulture)
         <span class="ml-1">▾</span>
     </div>
     <ul tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-50 w-40 p-2 shadow">
-        @foreach (var (name, nativeName) in Cultures)
+        @foreach (var (name, nativeName) in VisibleCultures)
         {
             <li>
-                <a href="@CultureUrl(name)" class="@IsCurrent(name)" rel="nofollow">@nativeName</a>
+                <a href="@CultureUrl(name)" class="@IsCurrent(name)" data-enhance-nav="false" rel="nofollow">@nativeName</a>
             </li>
         }
     </ul>
@@ -21,6 +23,9 @@
 
 @code {
     [Inject] private NavigationManager Navigation { get; set; } = null!;
+
+    /// <summary>Neutral culture names offered in the dropdown; empty/null shows all.</summary>
+    [Parameter] public string[]? EnabledCultures { get; set; }
 
     // Neutral cultures; UI translations live in Resources/SharedResource.{culture}.resx.
     private static readonly (string Name, string NativeName)[] Cultures =
@@ -30,6 +35,25 @@
         ("tr", "Türkçe"),
         ("ar", "العربية"),
     ];
+
+    /// <summary>
+    /// The enabled subset, keeping the fixed display order. Falls back to all
+    /// cultures when the filter would leave nothing (misconfigured settings
+    /// must never hide the switcher entirely).
+    /// </summary>
+    private IEnumerable<(string Name, string NativeName)> VisibleCultures
+    {
+        get
+        {
+            if (EnabledCultures is not { Length: > 0 })
+            {
+                return Cultures;
+            }
+
+            var enabled = Cultures.Where(c => EnabledCultures.Contains(c.Name)).ToArray();
+            return enabled.Length > 0 ? enabled : Cultures;
+        }
+    }
 
     private static string NativeNameOf(CultureInfo culture)
     {

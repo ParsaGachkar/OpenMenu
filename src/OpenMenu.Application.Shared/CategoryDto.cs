@@ -1,4 +1,4 @@
-namespace OpenMenu.Domain;
+namespace OpenMenu.Application.Shared;
 
 /// <summary>
 /// Flat projection of Category for API responses. Entities have circular

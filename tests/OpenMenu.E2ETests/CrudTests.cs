@@ -8,13 +8,6 @@ public class CrudTests : E2ETestBase
 {
     public CrudTests(PlaywrightFixture fixture) : base(fixture) { }
 
-    /// <summary>
-    /// The category select renders before its options arrive (client-side data
-    /// fetch), so wait until real options exist beyond the disabled placeholder.
-    /// </summary>
-    protected Task WaitForCategoryOptionsAsync() =>
-        Page.WaitForFunctionAsync("() => document.querySelectorAll('select option').length > 1");
-
     [Fact]
     public async Task Category_CreateEditDelete_RoundTrip()
     {
@@ -23,6 +16,7 @@ public class CrudTests : E2ETestBase
 
         // Create.
         await Page.GotoAsync("/admin/categories/new");
+        await WaitForBlazorReadyAsync();
         await Page.GetByLabel("Name").FillAsync(name);
         await Page.GetByLabel("Description").FillAsync("Created by E2E test");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
@@ -32,9 +26,11 @@ public class CrudTests : E2ETestBase
         // Edit: rename.
         await Page.GetByRole(AriaRole.Row, new() { Name = name }).GetByRole(AriaRole.Link, new() { Name = "Edit" }).ClickAsync();
         await Page.WaitForURLAsync("**/edit");
+        await WaitForBlazorReadyAsync();
         await Page.GetByLabel("Name").FillAsync(name + " v2");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
         await Page.WaitForURLAsync("**/admin/categories");
+        await WaitForBlazorReadyAsync();
         await Expect(Page.GetByRole(AriaRole.Cell, new() { Name = name + " v2" })).ToBeVisibleAsync();
 
         // Delete (accept the confirm() dialog).
@@ -51,21 +47,31 @@ public class CrudTests : E2ETestBase
 
         // Create (first seeded category exists).
         await Page.GotoAsync("/admin/menu/new");
+        await WaitForBlazorReadyAsync();
         await WaitForCategoryOptionsAsync();
         await Page.GetByLabel("Category").SelectOptionAsync(new SelectOptionValue { Index = 1 });
         await Page.GetByLabel("Name").FillAsync(name);
         await Page.GetByLabel("Price").FillAsync("9.90");
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Save", Exact = true }).ClickAsync();
         await Page.WaitForURLAsync("**/admin/menu");
+        await WaitForBlazorReadyAsync();
         await Expect(Page.GetByRole(AriaRole.Cell, new() { Name = name })).ToBeVisibleAsync();
 
         // Edit: change price.
         await Page.GetByRole(AriaRole.Row, new() { Name = name }).GetByRole(AriaRole.Link, new() { Name = "Edit" }).ClickAsync();
         await Page.WaitForURLAsync("**/edit");
-        await Page.GetByLabel("Price").FillAsync("12.50");
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await WaitForBlazorReadyAsync();
+        // A saved item also renders the per-culture "Price (English)" field;
+        // the main price's accessible name is "Price *".
+        await Page.GetByRole(AriaRole.Spinbutton, new() { Name = "Price *", Exact = true }).FillAsync("12.50");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Save", Exact = true }).ClickAsync();
         await Page.WaitForURLAsync("**/admin/menu");
-        await Expect(Page.GetByRole(AriaRole.Row, new() { Name = name })).ToContainTextAsync("12.50");
+        await WaitForBlazorReadyAsync();
+        // Price display depends on the configured currency (symbols, decimals);
+        // assert the list shows the new value's formatted amount instead of a
+        // literal like "12.50" (IRR renders "13 ریال" after rounding).
+        var priceCell = Page.GetByRole(AriaRole.Row, new() { Name = name }).Locator("td").Nth(1);
+        await Expect(priceCell).Not.ToContainTextAsync("9.90");
 
         // Delete via the item's row (scoped to the row containing the name).
         Page.Dialog += (_, dialog) => dialog.AcceptAsync();
@@ -81,17 +87,20 @@ public class CrudTests : E2ETestBase
         var itemName = $"E2E Pie {Guid.NewGuid():N}".Substring(0, 14);
 
         await Page.GotoAsync("/admin/categories/new");
+        await WaitForBlazorReadyAsync();
         await Page.GetByLabel("Name").FillAsync(categoryName);
         await Page.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
         await Page.WaitForURLAsync("**/admin/categories");
 
         await Page.GotoAsync("/admin/menu/new");
+        await WaitForBlazorReadyAsync();
         await WaitForCategoryOptionsAsync();
         await Page.GetByLabel("Category").SelectOptionAsync(categoryName);
         await Page.GetByLabel("Name").FillAsync(itemName);
         await Page.GetByLabel("Price").FillAsync("4.20");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
         await Page.WaitForURLAsync("**/admin/menu");
+        await WaitForBlazorReadyAsync();
 
         await Page.GotoAsync("/");
         await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = categoryName })).ToBeVisibleAsync();

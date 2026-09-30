@@ -52,11 +52,13 @@ public class LocalizationTests : E2ETestBase
 
         await LoginAsAdminAsync();
         await Page.GotoAsync("/admin/settings");
+        await WaitForBlazorReadyAsync();
 
         await Page.GetByLabel("Restaurant name").FillAsync(name);
-        // Exact: the page also has a "Primary color override" control whose
-        // label text contains "theme", which would trip strict mode.
-        await Page.GetByLabel("Theme", new() { Exact = true }).SelectOptionAsync(theme);
+        // The wrapped <label> makes the select's accessible name include every
+        // option text, so GetByLabel can't match; address the second select
+        // (Currency, Theme, Default language order) directly.
+        await Page.Locator("select").Nth(1).SelectOptionAsync(theme);
         await Page.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
 
         // Save redirects to ?saved=1 so the confirmation survives the theme reload.

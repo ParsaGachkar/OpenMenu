@@ -46,7 +46,9 @@ public class SmokeTests : E2ETestBase
 
         await Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Logout" })).ToBeVisibleAsync();
         await Page.GetByRole(AriaRole.Button, new() { Name = "Logout" }).ClickAsync();
-        await Page.WaitForURLAsync(u => u == "http://localhost:8088/");
+        // Logout redirects to the site root (base-URL agnostic: the tests run
+        // against localhost or 127.0.0.1 depending on the environment).
+        await Page.WaitForURLAsync("**/");
 
         // After logout the admin area is locked again.
         await Page.GotoAsync("/admin");

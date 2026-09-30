@@ -23,6 +23,7 @@ services:
         condition: service_healthy
     volumes:
       - app-keys:/app/keys
+      - app-media:/app/media
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_DETAILEDERRORS: "true"
@@ -36,3 +37,4 @@ services:
 volumes:
   postgres-data:
   app-keys:
+  app-media:

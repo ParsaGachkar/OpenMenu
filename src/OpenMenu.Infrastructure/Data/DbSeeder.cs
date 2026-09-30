@@ -50,9 +50,17 @@ public static class DbSeeder
                     Name = "Appetizers",
                     Description = "Small bites to start your meal",
                     SortOrder = 1,
+                    Translations =
+                    [
+                        new CategoryTranslation { Culture = "fa", Name = "پیش‌غذاها", Description = "خوراکی‌های کوچک برای شروع" },
+                    ],
                     Items =
                     [
-                        new MenuItem { Name = "Hummus with Pita", Description = "Creamy chickpea dip with warm pita", Price = 6.50m, SortOrder = 1 },
+                        new MenuItem
+                        {
+                            Name = "Hummus with Pita", Description = "Creamy chickpea dip with warm pita", Price = 6.50m, SortOrder = 1,
+                            Translations = [new MenuItemTranslation { Culture = "fa", Name = "حمص با نان پیتا", Description = "دپی خامه‌ای نخود با نان گرم", Price = 65000m }],
+                        },
                         new MenuItem { Name = "Falafel Balls", Description = "Six crispy falafel with tahini sauce", Price = 7.00m, SortOrder = 2 },
                     ],
                 },
@@ -61,10 +69,18 @@ public static class DbSeeder
                     Name = "Main Courses",
                     Description = "Hearty plates for a full meal",
                     SortOrder = 2,
+                    Translations =
+                    [
+                        new CategoryTranslation { Culture = "fa", Name = "غذاهای اصلی", Description = "بشقاب‌های مفصل برای یک وعده کامل" },
+                    ],
                     Items =
                     [
                         new MenuItem { Name = "Grilled Chicken Plate", Description = "Chicken skewers, saffron rice, grilled tomato", Price = 15.90m, SortOrder = 1 },
-                        new MenuItem { Name = "Lamb Kebab", Description = "Marinated lamb, flatbread, mint yogurt", Price = 18.50m, SortOrder = 2 },
+                        new MenuItem
+                        {
+                            Name = "Lamb Kebab", Description = "Marinated lamb, flatbread, mint yogurt", Price = 18.50m, SortOrder = 2,
+                            Translations = [new MenuItemTranslation { Culture = "fa", Name = "کباب بره", Description = "بره ماریناد شده، نان تخت، ماست نعناع", Price = 185000m }],
+                        },
                         new MenuItem { Name = "Vegetable Curry", Description = "Seasonal vegetables in coconut curry with rice", Price = 12.00m, SortOrder = 3, IsAvailable = false },
                     ],
                 },

@@ -21,10 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\\OpenMenu.Domain\\OpenMenu.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OpenMenu.Application.Shared\OpenMenu.Application.Shared.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.*" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.*" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.*" />

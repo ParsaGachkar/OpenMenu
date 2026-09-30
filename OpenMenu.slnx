@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/OpenMenu.Application.Shared/OpenMenu.Application.Shared.csproj" />
     <Project Path="src/OpenMenu.Application/OpenMenu.Application.csproj" />
     <Project Path="src/OpenMenu.Domain/OpenMenu.Domain.csproj" />
     <Project Path="src/OpenMenu.Infrastructure/OpenMenu.Infrastructure.csproj" />
@@ -7,7 +8,9 @@
     <Project Path="src/OpenMenu.Web.Client/OpenMenu.Web.Client.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/OpenMenu.ComponentTests/OpenMenu.ComponentTests.csproj" />
     <Project Path="tests/OpenMenu.E2ETests/OpenMenu.E2ETests.csproj" />
+    <Project Path="tests/OpenMenu.IntegrationTests/OpenMenu.IntegrationTests.csproj" />
     <Project Path="tests/OpenMenu.Tests/OpenMenu.Tests.csproj" />
   </Folder>
 </Solution>

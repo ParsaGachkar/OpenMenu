@@ -1,9 +1,11 @@
+@using OpenMenu.Application.Shared
 @page "/admin/menu"
 @attribute [Authorize]
 @layout Layout.AdminLayout
 @rendermode InteractiveAuto
 @inject IAdminApi Api
 @inject IStringLocalizer<SharedResource> L
+@inject IJSRuntime JS
 
 <PageTitle>Menu items</PageTitle>
 
@@ -45,7 +47,7 @@ else
                 {
                     <tr>
                         <td>@item.Name</td>
-                        <td>@item.Price.ToString("N2") @Currency</td>
+                        <td>@OpenMenu.Application.Shared.PriceFormatter.Format(item.Price, Currency)</td>
                         <td>@item.SortOrder</td>
                         <td>@(item.IsAvailable ? L["Yes"].Value : L["No"].Value)</td>
                         <td class="text-right">
@@ -61,7 +63,7 @@ else
 
 @code {
     private OpenMenu.Domain.MenuItem[]? _items;
-    private OpenMenu.Domain.CategoryDto[]? _categories;
+    private OpenMenu.Application.Shared.CategoryDto[]? _categories;
     private string Currency = "USD";
 
     protected override async Task OnInitializedAsync()
@@ -74,6 +76,11 @@ else
 
     private async Task DeleteAsync(OpenMenu.Domain.MenuItem item)
     {
+        if (!await JS.InvokeAsync<bool>("confirm", L["ConfirmDeleteItem"].Value))
+        {
+            return;
+        }
+
         if ((await Api.DeleteMenuItemAsync(item.Id)).Success)
         {
             await LoadAsync();

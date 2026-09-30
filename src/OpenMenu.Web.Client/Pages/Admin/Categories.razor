@@ -1,9 +1,11 @@
+@using OpenMenu.Application.Shared
 @page "/admin/categories"
 @attribute [Authorize]
 @layout Layout.AdminLayout
 @rendermode InteractiveAuto
 @inject IAdminApi Api
 @inject IStringLocalizer<SharedResource> L
+@inject IJSRuntime JS
 @inject NavigationManager Navigation
 
 <PageTitle>Categories</PageTitle>
@@ -48,15 +50,20 @@ else
 }
 
 @code {
-    private OpenMenu.Domain.CategoryDto[]? _categories;
+    private OpenMenu.Application.Shared.CategoryDto[]? _categories;
 
     protected override async Task OnInitializedAsync() => await LoadAsync();
 
     private async Task LoadAsync() =>
         _categories = await Api.GetCategoriesAsync();
 
-    private async Task DeleteAsync(OpenMenu.Domain.CategoryDto category)
+    private async Task DeleteAsync(OpenMenu.Application.Shared.CategoryDto category)
     {
+        if (!await JS.InvokeAsync<bool>("confirm", L["ConfirmDeleteCategory"].Value))
+        {
+            return;
+        }
+
         if ((await Api.DeleteCategoryAsync(category.Id)).Success)
         {
             await LoadAsync();

@@ -1,4 +1,6 @@
-namespace OpenMenu.Domain;
+namespace OpenMenu.Application.Shared;
+
+using OpenMenu.Domain;
 
 /// <summary>
 /// Admin operations for the interactive-auto admin pages. Those pages first
@@ -24,4 +26,20 @@ public interface IAdminApi
     Task<RestaurantSettings?> GetSettingsAsync();
     Task<ApiResult> SaveSettingsAsync(SettingsInput input);
     Task<UploadResult?> UploadImageAsync(byte[] data, string contentType, string fileName);
+
+    // Per-culture content (features: default culture, enabled cultures, localized menu).
+    Task<CategoryTranslation[]> GetCategoryTranslationsAsync(int categoryId);
+    Task<ApiResult> SaveCategoryTranslationAsync(int categoryId, CategoryTranslationInput input);
+    Task<MenuItemTranslation[]> GetMenuItemTranslationsAsync(int menuItemId);
+    Task<ApiResult> SaveMenuItemTranslationAsync(int menuItemId, MenuItemTranslationInput input);
+
+    // Multi-image gallery and video support.
+    Task<MenuItemImage[]> GetMenuItemImagesAsync(int menuItemId);
+    Task<ApiResult> AddMenuItemImageAsync(int menuItemId, string url);
+    Task<ApiResult> DeleteMenuItemImageAsync(int imageId);
+    Task<MenuItemVideo?> GetMenuItemVideoAsync(int menuItemId);
+    Task<ApiResult> SetMenuItemVideoAsync(int menuItemId, MenuItemVideoInput? input); // null input = remove
+
+    // Video upload (separate from image upload: different size limit + MIME checks).
+    Task<UploadResult?> UploadVideoAsync(byte[] data, string contentType, string fileName);
 }
