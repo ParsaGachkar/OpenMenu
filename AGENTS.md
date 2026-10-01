@@ -145,3 +145,6 @@ Lessons from real mistakes made in this codebase. Read this before changing anyt
   it smoke-tests the fresh image against a disposable Postgres.
 - Version tags must be `v`-prefixed (`v1.2.3`) for the semver tag rules to
   fire.
+- `github.repository` keeps the case used on GitHub (`ParsaGachkar/OpenMenu`);
+  GHCR refs must be lowercase — lowercase before any `docker run`/`docker tag`
+  (bash `${VAR,,}`), even though `docker/build-push-action` tolerates it.
