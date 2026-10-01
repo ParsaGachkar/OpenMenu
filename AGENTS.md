@@ -75,6 +75,19 @@ Lessons from real mistakes made in this codebase. Read this before changing anyt
 - **Write base-URL-agnostic tests.** Resolve target URLs from `Page`/fixture
   base URL (`**` globs), not a hard-coded `http://localhost:8088` — tests run
   against `127.0.0.1` locally and `localhost` in CI.
+- **Nesting gotchas in role queries:** a row's `GetByRole(Link, "Edit")`
+  resolves to the row's edit link, but on `article` cards `img`/`video` counts
+  are the card-level media assertions (home shows ONE media: image XOR video).
+- **Detail-page gallery hooks:** `[data-gallery-main]` = active slide box,
+  `[data-gallery-thumbs] [data-thumb]` = switcher (`.thumb-active` marks the
+  current), `[data-main-image]` = active image. The video is a regular slide
+  (`.thumb-active` moves onto it too). The island is `InteractiveServer`, so
+  `WaitForBlazorReadyAsync` is required before clicking thumbs.
+- **bUnit for admin editors:** register `Services.AddLocalization()` (the
+  components inject `IStringLocalizer<SharedResource>`) and a fake `IAdminApi`
+  — never copy component markup into a test double. `InputText` renders no
+  `type` attribute; drive it via `FindComponents<InputText>()` +
+  `ValueChanged.InvokeAsync`, not CSS input selectors.
 
 ## Test layers
 
@@ -88,8 +101,8 @@ Lessons from real mistakes made in this codebase. Read this before changing anyt
   migrations. Auth is a fake scheme with an `X-Test-Role` header. Anything
   needing the real database belongs in E2E, not here.
 - `OpenMenu.E2ETests` — Playwright; each test creates its own rows with a
-  known prefix ("E2E ", "Confirm ", "Detail ", ...) that the fixture cleanup
-  deletes afterwards; run against `docker compose up`.
+  known prefix ("E2E ", "Confirm ", "Detail ", "Gal ", "Card ", ...) that the
+  fixture cleanup deletes afterwards; run against `docker compose up`.
 
 ## Localization
 
@@ -97,9 +110,38 @@ Lessons from real mistakes made in this codebase. Read this before changing anyt
   Add new keys to **all four** files (en, fa, tr, ar); the neutral file doubles
   as the fallback. Keep keys duplicate-free (resx breaks silently on dupes).
 - Menu content translations are data (per-culture rows), not resx.
+- **Per-culture prices carry their own currency** (`MenuItemTranslation.Price`
+  + `.Currency`, null = restaurant default from settings). Public pages render
+  `Format(translation.Price ?? item.Price, translation.Currency ?? settings.Currency)`.
+  A blank price always clears the stored currency (server rule) — no half-cleared
+  rows. The currency list lives in `CurrencyOptions.All` (shared by Settings and
+  the translation editor; TOMAN intentionally offered alongside ISO 4217 codes).
+- **Never hardcode English in admin pages.** Every visible string — page
+  titles, empty states, buttons, role/option labels, error toasts — goes
+  through `L["..."]`. Hardcoded strings are the #1 cause of "i18n is broken"
+  reports; the fa E2E flow tests (`AdminLocalizationTests`) catch them via
+  `DoesNotContain` assertions on the rendered body text.
 
 ## Prerender-safe components
 
 - Static components (no `@rendermode`) cannot fetch async data without
   blocking; prefer parameters injected by the host or synchronous context
   reads, as `MainLayout` does for enabled cultures.
+
+## Branding assets & CI/CD
+
+- Branding assets live in **`docs/images/`** (logo.png, logo.svg,
+  screenshot-mobile.png) and are referenced from the README only — never
+  re-add loose images at the repo root.
+- Runtime assets ship from **`src/OpenMenu.Web/wwwroot/`** (`favicon.ico`,
+  `icons/icon-192.png`, `icons/apple-touch-icon.png`, generated from the
+  logo). `App.razor` links them; do not revert to the inline SVG data-URI
+  favicon. If the logo changes, regenerate the icons (ffmpeg scale works
+  fine) and keep filenames stable.
+- Two workflows: `.github/workflows/ci.yml` (build + all test layers) and
+  `.github/workflows/docker.yml` (GHCR publish). The docker workflow publishes
+  on pushes to `main` and `v*` tags (`latest` + semver + sha tags, built-in
+  `GITHUB_TOKEN`, no PAT needed) and is build-only on PRs. After publishing
+  it smoke-tests the fresh image against a disposable Postgres.
+- Version tags must be `v`-prefixed (`v1.2.3`) for the semver tag rules to
+  fire.
