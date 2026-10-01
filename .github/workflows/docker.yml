@@ -66,15 +66,25 @@ jobs:
         # checks it serves the public menu — catches broken images before release.
         if: github.event_name != 'pull_request'
         run: |
+          # The repository name may contain uppercase (github.repository);
+          # GHCR image references must be lowercase.
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          IMAGE="${IMAGE,,}"
+          docker rm -f smoke-app smoke-db > /dev/null 2>&1 || true
           docker network create smoke
           docker run -d --name smoke-db --network smoke \
             -e POSTGRES_DB=openmenu -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres \
             postgres:18-alpine
+          # App startup migrates the database — wait until Postgres accepts connections.
+          for i in $(seq 1 20); do
+            if docker exec smoke-db pg_isready -U postgres >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
           docker run -d --name smoke-app --network smoke -p 8080:8080 \
             -e ASPNETCORE_ENVIRONMENT=Production \
             -e ConnectionStrings__Default="Host=smoke-db;Port=5432;Database=openmenu;Username=postgres;Password=postgres" \
             -e Seed__AdminUsername=admin -e Seed__AdminPassword=admin123 \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+            "$IMAGE:${{ steps.meta.outputs.version }}"
           for i in $(seq 1 30); do
             if curl -sf -o /dev/null http://localhost:8080/; then
               echo "Smoke test passed"; exit 0
