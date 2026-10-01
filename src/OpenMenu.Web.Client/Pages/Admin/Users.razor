@@ -6,7 +6,7 @@
 @inject IAdminApi Api
 @inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Users</PageTitle>
+<PageTitle>@(L["Users"])</PageTitle>
 
 <h1 class="text-2xl font-bold mb-6">@(L["Users"])</h1>
 
@@ -34,8 +34,8 @@
                         <td>@user.Username</td>
                         <td>
                             <select class="select select-bordered select-xs" value="@user.Role.ToString()" @onchange="e => ChangeRoleAsync(user, e)">
-                                <option value="Admin">Admin</option>
-                                <option value="Editor">Editor</option>
+                                <option value="Admin">@(L["RoleAdmin"])</option>
+                                <option value="Editor">@(L["RoleEditor"])</option>
                             </select>
                         </td>
                         <td>
@@ -47,7 +47,7 @@
                             <button class="btn btn-ghost btn-xs" @onclick="() => ToggleActiveAsync(user)">
                                 @(user.IsActive ? L["Disable"].Value : L["Enable"].Value)
                             </button>
-                            <button class="btn btn-ghost btn-xs" @onclick="() => BeginPasswordReset(user)">Password</button>
+                            <button class="btn btn-ghost btn-xs" @onclick="() => BeginPasswordReset(user)">@(L["PasswordAction"])</button>
                         </td>
                     </tr>
                 }
@@ -67,14 +67,14 @@
                 <InputText @bind-Value="_newUser.Username" class="input input-bordered w-full" maxlength="64" />
             </label>
             <label class="form-control w-full">
-                <span class="label-text mb-1">Password (min 8 chars)</span>
+                <span class="label-text mb-1">@(L["PasswordHint"])</span>
                 <InputText type="password" @bind-Value="_newUser.Password" class="input input-bordered w-full" autocomplete="new-password" />
             </label>
             <label class="form-control w-full">
                 <span class="label-text mb-1">@(L["Role"])</span>
                 <InputSelect @bind-Value="_newUser.Role" class="select select-bordered w-full">
-                    <option value="Editor">Editor</option>
-                    <option value="Admin">Admin</option>
+                    <option value="Editor">@(L["RoleEditor"])</option>
+                    <option value="Admin">@(L["RoleAdmin"])</option>
                 </InputSelect>
             </label>
             <button class="btn btn-primary btn-sm" disabled="@_creating" @onclick="CreateUserAsync">@(L["CreateUser"])</button>
@@ -86,9 +86,9 @@
 {
     <div class="modal modal-open">
         <div class="modal-box max-w-sm">
-            <h3 class="font-bold">Set password for @_passwordFor.Username</h3>
+            <h3 class="font-bold">@(string.Format(L["SetPasswordFor"], _passwordFor.Username))</h3>
             <label class="form-control w-full mt-4">
-                <span class="label-text mb-1">New password (min 8 chars)</span>
+                <span class="label-text mb-1">@(L["NewPassword"])</span>
                 <InputText type="password" @bind-Value="_newPassword" class="input input-bordered w-full" autocomplete="new-password" />
             </label>
             <div class="modal-action">

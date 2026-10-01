@@ -37,6 +37,13 @@ public interface IAdminApi
     Task<MenuItemImage[]> GetMenuItemImagesAsync(int menuItemId);
     Task<ApiResult> AddMenuItemImageAsync(int menuItemId, string url);
     Task<ApiResult> DeleteMenuItemImageAsync(int imageId);
+
+    /// <summary>
+    /// Makes the gallery image with the given URL the item's cover: the chosen
+    /// URL becomes the primary ImageUrl, the former cover is demoted into the
+    /// gallery at the front. No-op when the URL is already the cover.
+    /// </summary>
+    Task<ApiResult> SetMenuItemImageCoverAsync(int menuItemId, string url);
     Task<MenuItemVideo?> GetMenuItemVideoAsync(int menuItemId);
     Task<ApiResult> SetMenuItemVideoAsync(int menuItemId, MenuItemVideoInput? input); // null input = remove
 

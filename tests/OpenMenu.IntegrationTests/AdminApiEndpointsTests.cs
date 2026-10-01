@@ -93,6 +93,86 @@ public class AdminApiEndpointsTests : IClassFixture<OpenMenuFactory>, IAsyncLife
     }
 
     [Fact]
+    public async Task MenuItem_SetCover_ReordersGallery_ChosenImageToIndexZero()
+    {
+        var categoryId = await CreateCategoryAsync();
+        var itemId = await CreateMenuItemAsync(categoryId, "/images/00000000-0000-0000-0000-000000000000");
+
+        // Gallery: an existing cover (ImageUrl) + additional images.
+        (await _admin.PostAsJsonAsync($"/api/admin/menu-items/{itemId}/images",
+            new MenuItemImageInput("/images/11111111-1111-1111-1111-111111111111", 1))).EnsureSuccessStatusCode();
+        (await _admin.PostAsJsonAsync($"/api/admin/menu-items/{itemId}/images",
+            new MenuItemImageInput("/images/22222222-2222-2222-2222-222222222222", 2))).EnsureSuccessStatusCode();
+        (await _admin.PostAsJsonAsync($"/api/admin/menu-items/{itemId}/images",
+            new MenuItemImageInput("/images/33333333-3333-3333-3333-333333333333", 3))).EnsureSuccessStatusCode();
+
+        // Act: promote the second gallery image to cover.
+        var saved = await _admin.GetFromJsonAsync<MenuItemImage[]>($"/api/admin/menu-items/{itemId}/images");
+        Assert.Contains(saved!, i => i.Url == "/images/22222222-2222-2222-2222-222222222222");
+        var setCover = await _admin.PutAsync(
+            "/api/admin/menu-items/images/cover?id=" + itemId + "&url=" + Uri.EscapeDataString("/images/22222222-2222-2222-2222-222222222222"),
+            content: null);
+        Assert.Equal(HttpStatusCode.OK, setCover.StatusCode);
+
+        // Assert: the chosen photo is now the primary image (removed from the
+        // gallery); the old cover was demoted to the FRONT of the remaining
+        // gallery (sort order below every other image).
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var item = await db.MenuItems.AsNoTracking()
+                .Include(i => i.Images)
+                .FirstAsync(i => i.Id == itemId);
+            Assert.Equal("/images/22222222-2222-2222-2222-222222222222", item.ImageUrl);
+            Assert.DoesNotContain(item.Images, i => i.Url == "/images/22222222-2222-2222-2222-222222222222");
+
+            var oldCover = item.Images.Single(i => i.Url == "/images/11111111-1111-1111-1111-111111111111");
+            Assert.True(oldCover.SortOrder < item.Images
+                .Where(i => i.Url != "/images/11111111-1111-1111-1111-111111111111")
+                .Min(i => i.SortOrder));
+        }
+
+        // Cleanup.
+        await _admin.PostAsJsonAsync($"/api/admin/menu-items/{itemId}/delete", new { });
+        await _admin.PostAsJsonAsync($"/api/admin/categories/{categoryId}/delete", new { });
+    }
+
+    [Fact]
+    public async Task MenuItem_TranslationWithCurrency_Persists_AndNullPriceClearsIt()
+    {
+        var categoryId = await CreateCategoryAsync();
+        var itemId = await CreateMenuItemAsync(categoryId, null);
+
+        // Save a per-culture price with its own currency.
+        var save = await _admin.PutAsJsonAsync($"/api/admin/menu-items/{itemId}/translations",
+            new MenuItemTranslationInput("fa", "آیتم", null, 99000m, "TOMAN"));
+        Assert.Equal(HttpStatusCode.OK, save.StatusCode);
+
+        var translations = await _admin.GetFromJsonAsync<MenuItemTranslation[]>($"/api/admin/menu-items/{itemId}/translations");
+        var fa = Assert.Single(translations!, t => t.Culture == "fa");
+        Assert.Equal(99000m, fa.Price);
+        Assert.Equal("TOMAN", fa.Currency);
+
+        // Blank price saves: price and currency both reset (no half-clears).
+        var clear = await _admin.PutAsJsonAsync($"/api/admin/menu-items/{itemId}/translations",
+            new MenuItemTranslationInput("fa", "آیتم", null, null, "USD"));
+        Assert.Equal(HttpStatusCode.OK, clear.StatusCode);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var cleared = await db.MenuItemTranslations.AsNoTracking()
+                .SingleAsync(t => t.MenuItemId == itemId && t.Culture == "fa");
+            Assert.Null(cleared.Price);
+            Assert.Null(cleared.Currency);
+        }
+
+        // Cleanup.
+        await _admin.PostAsJsonAsync($"/api/admin/menu-items/{itemId}/delete", new { });
+        await _admin.PostAsJsonAsync($"/api/admin/categories/{categoryId}/delete", new { });
+    }
+
+    [Fact]
     public async Task AdminEndpoints_RequireAuthorization()
     {
         var response = await _anonymous.GetAsync("/api/admin/categories");
@@ -123,6 +203,14 @@ public class AdminApiEndpointsTests : IClassFixture<OpenMenuFactory>, IAsyncLife
     {
         var create = await _admin.PostAsJsonAsync("/api/admin/categories",
             new CategoryInput($"IT Cat {Guid.NewGuid():N}".Substring(0, 14), null, 1, true));
+        Assert.Equal(HttpStatusCode.Created, create.StatusCode);
+        return (await create.Content.ReadFromJsonAsync<ApiResult>())!.CreatedId!.Value;
+    }
+
+    private async Task<int> CreateMenuItemAsync(int categoryId, string? coverUrl)
+    {
+        var create = await _admin.PostAsJsonAsync("/api/admin/menu-items",
+            new MenuItemInput(categoryId, $"IT Item {Guid.NewGuid():N}".Substring(0, 14), null, 1m, coverUrl, 1, true));
         Assert.Equal(HttpStatusCode.Created, create.StatusCode);
         return (await create.Content.ReadFromJsonAsync<ApiResult>())!.CreatedId!.Value;
     }

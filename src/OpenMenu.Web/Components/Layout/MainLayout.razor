@@ -15,7 +15,7 @@
 <div class="min-h-screen flex flex-col bg-base-100">
     <header class="navbar bg-base-200 px-4">
         <div class="navbar-start">
-            <NavLink href="/" class="btn btn-ghost text-lg font-semibold">OpenMenu</NavLink>
+            <NavLink href="/" class="btn btn-ghost text-lg font-semibold">@(cultureSettings?.Name ?? "OpenMenu")</NavLink>
         </div>
         <div class="navbar-end gap-2">
             @* Static render: the dropdown is plain anchors, so it needs no

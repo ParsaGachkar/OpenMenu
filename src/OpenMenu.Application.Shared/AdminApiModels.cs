@@ -40,8 +40,12 @@ public sealed record SettingsInput(
 
 // Translation and media payloads (feature: per-culture content, multi-image, video).
 
-/// <summary>Overlay content for one culture. Null fields keep the invariant values.</summary>
-public sealed record MenuItemTranslationInput(string Culture, string? Name, string? Description, decimal? Price);
+/// <summary>
+/// Overlay content for one culture. Null fields keep the invariant values.
+/// Currency applies to Price (null falls back to the restaurant currency).
+/// </summary>
+public sealed record MenuItemTranslationInput(
+    string Culture, string? Name, string? Description, decimal? Price, string? Currency = null);
 
 /// <summary>Overlay content for one culture. Null fields keep the invariant values.</summary>
 public sealed record CategoryTranslationInput(string Culture, string? Name, string? Description);

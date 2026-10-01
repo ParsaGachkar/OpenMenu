@@ -26,6 +26,14 @@ public class MenuItemTranslation
 
     /// <summary>Null keeps the invariant MenuItem.Price; set to override per culture. Precision via fluent config (12,2).</summary>
     public decimal? Price { get; set; }
+
+    /// <summary>
+    /// Currency of the per-culture Price override (e.g. "TOMAN" for fa while
+    /// the restaurant default is USD). Only meaningful together with Price:
+    /// null falls back to the restaurant currency.
+    /// </summary>
+    [StringLength(10)]
+    public string? Currency { get; set; }
 }
 
 /// <summary>

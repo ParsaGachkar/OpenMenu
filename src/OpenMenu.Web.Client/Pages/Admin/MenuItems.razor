@@ -7,7 +7,7 @@
 @inject IStringLocalizer<SharedResource> L
 @inject IJSRuntime JS
 
-<PageTitle>Menu items</PageTitle>
+<PageTitle>@(L["MenuItems"])</PageTitle>
 
 <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-bold">@(L["MenuItems"])</h1>
@@ -20,7 +20,7 @@
 }
 else if (_items.Length == 0)
 {
-    <div class="alert"><span>No menu items yet. Create one.</span></div>
+    <div class="alert"><span>@(L["NoItemsYet"])</span></div>
 }
 else
 {
@@ -41,7 +41,7 @@ else
             <tbody>
                 @if (items.Length == 0)
                 {
-                    <tr><td colspan="5" class="opacity-50">No items</td></tr>
+                    <tr><td colspan="5" class="opacity-50">@(L["NoItemsInCategory"])</td></tr>
                 }
                 @foreach (var item in items)
                 {

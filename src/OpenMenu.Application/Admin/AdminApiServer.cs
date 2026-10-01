@@ -285,6 +285,12 @@ public sealed class AdminApiServer(AppDbContext db) : IAdminApi
         translation.Name = string.IsNullOrWhiteSpace(input.Name) ? null : input.Name.Trim();
         translation.Description = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim();
         translation.Price = input.Price;
+        // Currency only rides along with a price override; a blank price means
+        // the restaurant currency applies, so a stored currency would be dead
+        // data (and a stale one after the settings change).
+        translation.Currency = input.Price is null
+            ? null
+            : (string.IsNullOrWhiteSpace(input.Currency) ? null : input.Currency.Trim().ToUpperInvariant());
 
         // Drop the row entirely when it no longer overrides anything.
         if (translation.Name is null && translation.Description is null && translation.Price is null)
@@ -329,8 +335,51 @@ public sealed class AdminApiServer(AppDbContext db) : IAdminApi
 
     public async Task<ApiResult> DeleteMenuItemImageAsync(int imageId)
     {
-        var deleted = await db.MenuItemImages.Where(i => i.Id == imageId).ExecuteDeleteAsync();
-        return deleted == 0 ? ApiResult.Fail("Image not found.") : ApiResult.Ok();
+        var deleted = await db.MenuItemImages.Where(i => i.Id == imageId).ExecuteDeleteAsync();        return deleted == 0 ? ApiResult.Fail("Image not found.") : ApiResult.Ok();
+    }
+
+    public async Task<ApiResult> SetMenuItemImageCoverAsync(int menuItemId, string url)
+    {
+        if (string.IsNullOrWhiteSpace(url) || url.Length > 500)
+        {
+            return ApiResult.Fail("Invalid image URL.");
+        }
+
+        var item = await db.MenuItems.FindAsync(menuItemId);
+        if (item is null)
+        {
+            return ApiResult.Fail("Menu item not found.");
+        }
+
+        url = url.Trim();
+        if (item.ImageUrl == url)
+        {
+            return ApiResult.Ok(); // Already the cover.
+        }
+
+        // Chosen gallery photo becomes the cover; the former cover is demoted
+        // to the front of the gallery. Ordering afterwards: cover, ex-cover, rest.
+        var chosen = await db.MenuItemImages
+            .FirstOrDefaultAsync(i => i.MenuItemId == menuItemId && i.Url == url);
+        var demotedUrl = item.ImageUrl;
+        var demoted = demotedUrl is null
+            ? null
+            : await db.MenuItemImages
+                .FirstOrDefaultAsync(i => i.MenuItemId == menuItemId && i.Url == demotedUrl);
+
+        item.ImageUrl = url;
+        if (chosen is not null)
+        {
+            db.MenuItemImages.Remove(chosen);
+        }
+
+        if (demoted is not null)
+        {
+            demoted.SortOrder = chosen?.SortOrder ?? demoted.SortOrder - 1;
+        }
+
+        await db.SaveChangesAsync();
+        return ApiResult.Ok();
     }
 
     // ---- Video (feature 5) ----

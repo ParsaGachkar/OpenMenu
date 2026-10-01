@@ -13,6 +13,11 @@
 <h1 class="text-2xl font-bold mb-6">@(IsNew ? L["NewCategory"] : L["EditCategory"])</h1>
 
 <div class="max-w-lg">
+    @if (_error is not null)
+    {
+        <div role="alert" class="alert alert-error mb-4"><span>@_error</span></div>
+    }
+
     <EditForm Model="_model" OnValidSubmit="SaveAsync" FormName="CategoryForm">
         <DataAnnotationsValidator />
         <div class="card bg-base-200 shadow-md">
@@ -39,6 +44,42 @@
                     </label>
                 </div>
 
+                @* ---- Per-culture translations: one tab per enabled culture
+                     (same pattern as the menu item editor). Only for saved
+                     categories — a translation row needs an id. ---- *@
+                @if (!IsNew && _enabledCultures.Length > 0)
+                {
+                    <div class="divider my-1"></div>
+                    <h2 class="font-semibold">@(L["TranslationsHeading"])</h2>
+                    <div role="tablist" class="tabs tabs-boxed">
+                        @foreach (var culture in _enabledCultures)
+                        {
+                            <a role="tab" class="tab @(culture == _translationCulture ? "tab-active" : "")"
+                               @onclick="() => SelectCultureAsync(culture)">@NativeCultureName(culture)</a>
+                        }
+                    </div>
+                    <div class="grid gap-3 mt-2">
+                        <label class="form-control w-full">
+                            <span class="label-text mb-1">@(L["Name"]) (@NativeCultureName(_translationCulture))</span>
+                            <InputText @bind-Value="_translation.Name" class="input input-bordered w-full" maxlength="200"
+                                       placeholder="@_model.Name" />
+                        </label>
+                        <label class="form-control w-full">
+                            <span class="label-text mb-1">@(L["Description"]) (@NativeCultureName(_translationCulture))</span>
+                            <InputTextArea @bind-Value="_translation.Description" class="textarea textarea-bordered w-full" rows="2" maxlength="2000"
+                                           placeholder="@_model.Description" />
+                        </label>
+                        <div>
+                            <button type="button" data-save-translation class="btn btn-outline btn-sm" disabled="@_savingTranslation"
+                                    @onclick="SaveTranslationAsync">@(L["SaveTranslation"])</button>
+                        </div>
+                    </div>
+                }
+                else if (IsNew)
+                {
+                    <span class="label-text-alt text-base-content/60">@(L["TranslationsAfterSaveHint"])</span>
+                }
+
                 <div class="card-actions justify-end mt-2">
                     <NavLink href="/admin/categories" class="btn btn-ghost">@(L["Cancel"])</NavLink>
                     <button type="submit" class="btn btn-primary" disabled="@_saving">@(L["Save"])</button>
@@ -54,6 +95,14 @@
     private bool IsNew => Id is null or 0;
     private CategoryFormModel _model = new();
     private bool _saving;
+    private string? _error;
+
+    // Per-culture content (same pattern as MenuItemEdit): one tab per enabled
+    // culture, loaded from and saved to the category-translations endpoints.
+    private string[] _enabledCultures = [];
+    private string _translationCulture = "en";
+    private CategoryTranslationFormModel _translation = new();
+    private bool _savingTranslation;
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,6 +120,56 @@
                     IsVisible = category.IsVisible,
                 };
             }
+
+            var settings = await Api.GetPublicSettingsAsync();
+            if (settings is not null)
+            {
+                _enabledCultures = SupportedCultures.SplitEnabled(settings.EnabledCultures, settings.DefaultCulture);
+                _translationCulture = _enabledCultures[0];
+                await LoadTranslationAsync();
+            }
+        }
+    }
+
+    private async Task LoadTranslationAsync()
+    {
+        var translations = await Api.GetCategoryTranslationsAsync(Id!.Value);
+        var existing = translations.FirstOrDefault(t => t.Culture == _translationCulture);
+        _translation = new CategoryTranslationFormModel
+        {
+            Name = existing?.Name ?? string.Empty,
+            Description = existing?.Description ?? string.Empty,
+        };
+    }
+
+    private async Task SelectCultureAsync(string culture)
+    {
+        if (culture == _translationCulture)
+        {
+            return;
+        }
+        _translationCulture = culture;
+        await LoadTranslationAsync();
+    }
+
+    private async Task SaveTranslationAsync()
+    {
+        _savingTranslation = true;
+        try
+        {
+            var result = await Api.SaveCategoryTranslationAsync(Id!.Value, new CategoryTranslationInput(
+                _translationCulture,
+                string.IsNullOrWhiteSpace(_translation.Name) ? null : _translation.Name,
+                string.IsNullOrWhiteSpace(_translation.Description) ? null : _translation.Description));
+
+            if (!result.Success)
+            {
+                _error = result.Error;
+            }
+        }
+        finally
+        {
+            _savingTranslation = false;
         }
     }
 
@@ -87,12 +186,25 @@
             {
                 Navigation.NavigateTo("/admin/categories", forceLoad: true);
             }
+            else
+            {
+                _error = result.Error;
+            }
         }
         finally
         {
             _saving = false;
         }
     }
+
+    private static string NativeCultureName(string culture) => culture switch
+    {
+        "en" => "English",
+        "fa" => "فارسی",
+        "tr" => "Türkçe",
+        "ar" => "العربية",
+        _ => culture,
+    };
 
     private sealed class CategoryFormModel
     {
@@ -107,5 +219,11 @@
         public int SortOrder { get; set; }
 
         public bool IsVisible { get; set; } = true;
+    }
+
+    private sealed class CategoryTranslationFormModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
     }
 }

@@ -6,7 +6,7 @@
 @inject IAdminApi Api
 @inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Dashboard</PageTitle>
+<PageTitle>@(L["Dashboard"])</PageTitle>
 
 <h1 class="text-2xl font-bold mb-6">@(L["Dashboard"])</h1>
 
@@ -26,8 +26,8 @@
 </div>
 
 <div class="mt-6 flex gap-2">
-    <NavLink href="/admin/menu" class="btn btn-primary btn-sm">Manage menu</NavLink>
-    <NavLink href="/" class="btn btn-ghost btn-sm">View public menu</NavLink>
+    <NavLink href="/admin/menu" class="btn btn-primary btn-sm">@(L["ManageMenu"])</NavLink>
+    <NavLink href="/" class="btn btn-ghost btn-sm">@(L["ViewPublicMenu"])</NavLink>
 </div>
 
 @code {

@@ -23,12 +23,22 @@ public class CrudTests : E2ETestBase
         await Page.WaitForURLAsync("**/admin/categories");
         await Expect(Page.GetByRole(AriaRole.Cell, new() { Name = name })).ToBeVisibleAsync();
 
-        // Edit: rename.
+        // Edit: rename. The saved category also renders the per-culture
+        // translation tabs ("Name (English)", "Save translation"), so the
+        // invariant fields need exact accessible names.
         await Page.GetByRole(AriaRole.Row, new() { Name = name }).GetByRole(AriaRole.Link, new() { Name = "Edit" }).ClickAsync();
         await Page.WaitForURLAsync("**/edit");
         await WaitForBlazorReadyAsync();
-        await Page.GetByLabel("Name").FillAsync(name + " v2");
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        // The editor re-renders twice: the server circuit renders first, then
+        // InteractiveAuto swaps the whole DOM when WASM attaches and re-runs
+        // init (categories + translations fetches). A fill that lands on the
+        // server-phase DOM is lost. The tabs mark init completion in whichever
+        // phase is current; the settle window lets the swap finish so the fill
+        // sticks to the final (WASM) DOM.
+        await Page.WaitForSelectorAsync("[role='tab']");
+        await Page.WaitForTimeoutAsync(1200);
+        await Page.GetByRole(AriaRole.Textbox, new() { Name = "Name *", Exact = true }).FillAsync(name + " v2");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Save", Exact = true }).ClickAsync();
         await Page.WaitForURLAsync("**/admin/categories");
         await WaitForBlazorReadyAsync();
         await Expect(Page.GetByRole(AriaRole.Cell, new() { Name = name + " v2" })).ToBeVisibleAsync();

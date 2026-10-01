@@ -46,6 +46,12 @@ if (!string.IsNullOrEmpty(cultureValue))
     if (!string.IsNullOrEmpty(ui))
     {
         var cultureInfo = SafeCulture(ui);
+        // Default* variants are required, not just Current*: await continuations
+        // can resume on threads that never ran this boot code, and a bare
+        // CurrentUICulture made those renders fall back to English (observed:
+        // the list page stayed Farsi while the edit page flipped back).
+        CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+        CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
         CultureInfo.CurrentCulture = cultureInfo;
         CultureInfo.CurrentUICulture = cultureInfo;
     }

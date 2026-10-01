@@ -273,6 +273,12 @@ app.MapPost("/api/admin/menu-items/images/{imageId:int}/delete", async (int imag
     ToHttpResult(await api.DeleteMenuItemImageAsync(imageId))
 ).RequireAuthorization("EditorOrAdmin");
 
+// Make a gallery photo the cover: chosen URL becomes ImageUrl, the former
+// cover is demoted into the gallery.
+app.MapPut("/api/admin/menu-items/images/cover", async (int id, string url, IAdminApi api) =>
+    ToHttpResult(await api.SetMenuItemImageCoverAsync(id, url))
+).RequireAuthorization("EditorOrAdmin");
+
 // Per-item video (feature: video support). Null body removes the video.
 app.MapGet("/api/admin/menu-items/{id:int}/video", async (int id, IAdminApi api) =>
     Results.Ok(await api.GetMenuItemVideoAsync(id)) // null body (not 204): GetFromJsonAsync throws on empty

@@ -100,6 +100,9 @@ public sealed class AdminApiClient(HttpClient http) : IAdminApi
     public Task<ApiResult> DeleteMenuItemImageAsync(int imageId) =>
         DeleteAsync($"api/admin/menu-items/images/{imageId}/delete");
 
+    public Task<ApiResult> SetMenuItemImageCoverAsync(int menuItemId, string url) =>
+        WriteAsync(() => http.PutAsync($"api/admin/menu-items/images/cover?id={menuItemId}&url={Uri.EscapeDataString(url)}", content: null));
+
     public async Task<MenuItemVideo?> GetMenuItemVideoAsync(int menuItemId)
     {
         using var response = await http.GetAsync($"api/admin/menu-items/{menuItemId}/video");

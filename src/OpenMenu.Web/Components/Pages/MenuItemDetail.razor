@@ -1,5 +1,6 @@
 @page "/menu/item/{Id:int}"
 @using OpenMenu.Application.Shared
+@using OpenMenu.Web.Components.Shared
 @inject AppDbContext Db
 @inject IStringLocalizer<SharedResource> L
 @attribute [StreamRendering]
@@ -20,18 +21,16 @@ else
         </NavLink>
 
         <article class="card bg-base-200 shadow-sm">
-            @if (Gallery.Count > 0)
-            {
-                <figure>
-                    <img src="@Gallery[0]" alt="@NameOf(Item)" class="w-full max-h-96 object-cover rounded-t-box" />
-                </figure>
-            }
+            @* Gallery: the active slide lives in the main box; the video is a
+               first-class slide. Prerendered SSR shows slide 0 immediately;
+               the island takes over once its circuit connects. *@
+            <GalleryDetail @rendermode="RenderMode.InteractiveServer" Name="@NameOf(Item)" Slides="@Slides" />
 
             <div class="card-body gap-4">
                 <div class="flex items-start justify-between gap-3">
                     <h1 class="text-2xl font-bold">@NameOf(Item)</h1>
                     <span data-price class="text-xl font-semibold whitespace-nowrap">
-                        @(PriceFormatter.Format(PriceOf(Item), Settings?.Currency))
+                        @(PriceFormatter.Format(PriceOf(Item), CurrencyOf(Item) ?? Settings?.Currency))
                     </span>
                 </div>
 
@@ -43,24 +42,6 @@ else
                 @if (!Item.IsAvailable)
                 {
                     <div><span class="badge badge-ghost">@(L["SoldOut"])</span></div>
-                }
-
-                @* Remaining gallery photos (the first is the cover above). *@
-                @if (Gallery.Count > 1)
-                {
-                    <div class="flex flex-wrap gap-3" data-gallery>
-                        @foreach (var url in Gallery.Skip(1))
-                        {
-                            <img src="@url" alt="@NameOf(Item)" class="w-24 h-24 rounded object-cover" loading="lazy" />
-                        }
-                    </div>
-                }
-
-                @if (Item.Video is not null)
-                {
-                    <div data-video>
-                        <video src="@Item.Video.Url" controls preload="metadata" class="rounded w-full"></video>
-                    </div>
                 }
 
                 @if (Category is not null)
@@ -80,7 +61,7 @@ else
     private RestaurantSettings? Settings;
     private MenuItem? Item;
     private Category? Category;
-    private List<string> Gallery = [];
+    private List<GalleryDetail.GallerySlide> Slides = [];
     private string BackUrl = "/";
 
     protected override async Task OnInitializedAsync()
@@ -96,7 +77,16 @@ else
 
         if (Item is not null)
         {
-            Gallery = GalleryOf(Item);
+            // Video first, then the ordered photos: the video participates in
+            // the gallery instead of rendering separately under the images.
+            if (Item.Video is not null)
+            {
+                Slides.Add(new GalleryDetail.GallerySlide(Item.Video.Url, IsVideo: true));
+            }
+
+            Slides.AddRange(GalleryOf(Item)
+                .Select(url => new GalleryDetail.GallerySlide(url, IsVideo: false)));
+
             Category = await Db.Categories
                 .AsNoTracking()
                 .Include(c => c.Translations)
@@ -119,6 +109,10 @@ else
 
     private decimal PriceOf(MenuItem item) =>
         FindTranslation(item.Translations)?.Price ?? item.Price;
+
+    /// <summary>Currency of the per-culture price override, when set.</summary>
+    private string? CurrencyOf(MenuItem item) =>
+        FindTranslation(item.Translations)?.Currency;
 
     private MenuItemTranslation? FindTranslation(List<MenuItemTranslation> translations)
     {

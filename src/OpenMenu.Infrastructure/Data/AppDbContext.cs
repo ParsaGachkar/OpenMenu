@@ -107,6 +107,7 @@ public class MenuItemTranslationConfiguration : IEntityTypeConfiguration<MenuIte
         builder.Property(t => t.Name).HasMaxLength(200);
         builder.Property(t => t.Description).HasMaxLength(2000);
         builder.Property(t => t.Price).HasPrecision(12, 2);
+        builder.Property(t => t.Currency).HasMaxLength(10);
 
         builder.HasOne(t => t.MenuItem)
             .WithMany(m => m.Translations)

@@ -9,7 +9,7 @@
 @inject IStringLocalizer<SharedResource> L
 @inject IJSRuntime JS
 
-<PageTitle>@(IsNew ? "New item" : "Edit item")</PageTitle>
+<PageTitle>@(IsNew ? L["NewItem"] : L["EditItem"])</PageTitle>
 
 <h1 class="text-2xl font-bold mb-6">@(IsNew ? L["NewItem"] : L["EditItem"])</h1>
 
@@ -82,6 +82,12 @@
                                         {
                                             <span data-cover class="absolute bottom-0 left-0 badge badge-primary badge-xs">@(L["Cover"])</span>
                                         }
+                                        else
+                                        {
+                                            <button type="button" data-set-cover aria-label="Set cover"
+                                                    class="btn btn-neutral btn-xs absolute bottom-1 right-1 h-5 min-h-0 px-1"
+                                                    @onclick="() => SetCoverAsync(index)">@(L["SetCover"])</button>
+                                        }
                                         <button type="button" aria-label="Remove photo" class="btn btn-error btn-xs absolute -top-2 -right-2 rounded-full w-5 h-5 p-0"
                                                 @onclick="() => RemovePhotoAsync(index)">×</button>
                                     </div>
@@ -107,7 +113,7 @@
                         {
                             <div class="mb-2">
                                 <video src="@_video.Url" controls data-video-editor class="rounded w-full max-w-xs"></video>
-                                <button type="button" class="btn btn-ghost btn-xs mt-1" @onclick="RemoveVideoAsync">Remove video</button>
+                                <button type="button" class="btn btn-ghost btn-xs mt-1" @onclick="RemoveVideoAsync">@(L["RemoveVideo"])</button>
                             </div>
                         }
                         <InputFile OnChange="OnVideoSelected" accept="video/*" class="file-input file-input-bordered file-input-sm w-full" />
@@ -139,12 +145,22 @@
                         </label>
                         <label class="form-control w-full">
                             <span class="label-text mb-1">@(L["Price"]) (@NativeCultureName(_translationCulture))</span>
-                            <InputNumber @bind-Value="_translation.Price" class="input input-bordered w-full" step="0.01" min="0"
-                                         placeholder="@_model.Price.ToString("0.##")" />
+                            <div class="flex gap-2">
+                                <InputNumber @bind-Value="_translation.Price" class="input input-bordered w-full" step="0.01" min="0"
+                                             placeholder="@_model.Price.ToString("0.##")" />
+                                <select data-translation-currency class="select select-bordered w-36"
+                                        value="@(_translation.Currency ?? string.Empty)" @onchange="OnCurrencyChanged">
+                                    <option value="">@string.Format(L["DefaultCurrency"], Settings?.Currency ?? "USD")</option>
+                                    @foreach (var (currencyCode, _) in CurrencyOptions.All.Where(c => c.Code != Settings?.Currency))
+                                    {
+                                        <option value="@currencyCode">@currencyCode</option>
+                                    }
+                                </select>
+                            </div>
                             <span class="label-text-alt text-base-content/60">@(L["TranslationPriceHint"])</span>
                         </label>
                         <div>
-                            <button type="button" class="btn btn-outline btn-sm" disabled="@_savingTranslation"
+                            <button type="button" data-save-translation class="btn btn-outline btn-sm" disabled="@_savingTranslation"
                                     @onclick="SaveTranslationAsync">@(L["SaveTranslation"])</button>
                         </div>
                     </div>
@@ -180,6 +196,7 @@
     private string _translationCulture = "en";
     private MenuItemTranslationFormModel _translation = new();
     private bool _savingTranslation;
+    private PublicSettingsDto? Settings;
 
     protected override async Task OnInitializedAsync()
     {
@@ -210,12 +227,16 @@
             var settings = await Api.GetPublicSettingsAsync();
             if (settings is not null)
             {
+                Settings = settings;
                 _enabledCultures = SupportedCultures.SplitEnabled(settings.EnabledCultures, settings.DefaultCulture);
                 _translationCulture = _enabledCultures[0];
                 await LoadTranslationAsync();
             }
         }
     }
+
+    private void OnCurrencyChanged(ChangeEventArgs e) =>
+        _translation.Currency = string.IsNullOrWhiteSpace(e.Value?.ToString()) ? null : e.Value!.ToString();
 
     private async Task LoadTranslationAsync()
     {
@@ -226,6 +247,7 @@
             Name = existing?.Name ?? string.Empty,
             Description = existing?.Description ?? string.Empty,
             Price = existing?.Price,
+            Currency = existing?.Currency,
         };
     }
 
@@ -248,7 +270,8 @@
                 _translationCulture,
                 string.IsNullOrWhiteSpace(_translation.Name) ? null : _translation.Name,
                 string.IsNullOrWhiteSpace(_translation.Description) ? null : _translation.Description,
-                _translation.Price));
+                _translation.Price,
+                _translation.Currency));
 
             if (!result.Success)
             {
@@ -304,7 +327,7 @@
                 var upload = await Api.UploadImageAsync(ms.ToArray(), file.ContentType, file.Name);
                 if (upload is null)
                 {
-                    _error = "Image upload failed (only images up to 2 MB are allowed).";
+                    _error = L["ImageUploadFailed"].Value;
                     continue;
                 }
 
@@ -345,7 +368,7 @@
         }
         catch
         {
-            _error = "Image upload failed (only images up to 2 MB are allowed).";
+            _error = L["ImageUploadFailed"].Value;
         }
         finally
         {
@@ -392,6 +415,45 @@
         }
     }
 
+    /// <summary>
+    /// Makes the photo at the given gallery position the cover. Saved items swap
+    /// immediately through the API; unsaved (new) items just reorder the client
+    /// state — Save persists the choice.
+    /// </summary>
+    private async Task SetCoverAsync(int index)
+    {
+        var url = GalleryUrls[index];
+        if (url == _model.ImageUrl)
+        {
+            return; // Already the cover.
+        }
+
+        if (!IsNew)
+        {
+            var result = await Api.SetMenuItemImageCoverAsync(Id!.Value, url);
+            if (!result.Success)
+            {
+                _error = result.Error;
+                return;
+            }
+
+            // The API demoted the former cover to the front of the gallery.
+            _images = await Api.GetMenuItemImagesAsync(Id.Value);
+        }
+        else
+        {
+            // Whole gallery is unsaved client state; the swap persists on Save.
+            _pendingPhotos.Remove(url);
+            if (_model.ImageUrl is not null)
+            {
+                _pendingPhotos.Remove(_model.ImageUrl);
+                _pendingPhotos.Insert(0, _model.ImageUrl);
+            }
+        }
+
+        _model.ImageUrl = url;
+    }
+
     private async Task OnVideoSelected(InputFileChangeEventArgs e)
     {
         _error = null;
@@ -406,7 +468,7 @@
             var upload = await Api.UploadVideoAsync(ms.ToArray(), e.File.ContentType, e.File.Name);
             if (upload is null)
             {
-                _error = "Video upload failed (only videos up to 50 MB are allowed).";
+                _error = L["VideoUploadFailed"].Value;
                 return;
             }
 
@@ -422,7 +484,7 @@
         }
         catch
         {
-            _error = "Video upload failed (only videos up to 50 MB are allowed).";
+            _error = L["VideoUploadFailed"].Value;
         }
         finally
         {
@@ -506,5 +568,6 @@
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public decimal? Price { get; set; }
+        public string? Currency { get; set; }
     }
 }

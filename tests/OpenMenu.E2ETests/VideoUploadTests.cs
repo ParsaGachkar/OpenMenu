@@ -55,14 +55,15 @@ public class VideoUploadTests : E2ETestBase
         Assert.True(response.Ok);
         Assert.Equal("video/mp4", response.Headers["content-type"]);
 
-        // The public detail page embeds the same video.
+        // The public detail page embeds the same video as the active gallery
+        // slide (the item has no photos, so the video is slide 0).
         await Page.GotoAsync("/");
         await WaitForBlazorReadyAsync();
         var card = Page.Locator("article").Filter(new() { HasText = name });
         await card.GetByRole(AriaRole.Link, new() { Name = "Details" }).ClickAsync();
         await Page.WaitForURLAsync("**/menu/item/**");
         await WaitForBlazorReadyAsync();
-        var detailVideo = Page.Locator("[data-video] video");
+        var detailVideo = Page.Locator("[data-gallery-main] video");
         await Expect(detailVideo).ToBeVisibleAsync(new() { Timeout = 10000 });
     }
 }

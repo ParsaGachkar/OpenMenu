@@ -1,0 +1,63 @@
+@* Active-slide media gallery for the menu item detail page. The page itself
+   is static SSR (streaming); this island is the only interactive part, so a
+   tiny circuit powers the slide switching (thumbs include the video). Without
+   interactivity — e.g. during streaming prerender — slide 0 is shown. *@
+@if (Slides is { Count: > 0 })
+{
+    <figure data-gallery-main class="bg-base-300">
+        @{
+            var active = Slides[Math.Min(_active, Slides.Count - 1)];
+        }
+        @if (active.IsVideo)
+        {
+            <video @key="active.Url" src="@active.Url" controls preload="metadata"
+                   class="w-full max-h-96 object-contain rounded-t-box bg-black"></video>
+        }
+        else
+        {
+            <img @key="active.Url" src="@active.Url" alt="@Name" data-main-image
+                 class="w-full max-h-96 object-cover rounded-t-box" />
+        }
+    </figure>
+
+    @if (Slides.Count > 1)
+    {
+        <div data-gallery-thumbs class="flex flex-wrap gap-3 px-4 pt-4">
+            @for (var i = 0; i < Slides.Count; i++)
+            {
+                var index = i;
+                var slide = Slides[i];
+                <button type="button" data-thumb
+                        class=@($"h-20 w-20 rounded overflow-hidden border-2 {(i == _active ? "thumb-active border-primary" : "border-transparent")}")
+                        aria-label=@($"{Name} {(slide.IsVideo ? "video" : $"photo {i + 1}")}")
+                        @onclick="() => Show(index)">
+                    @if (slide.IsVideo)
+                    {
+                        <span class="flex h-full w-full items-center justify-center bg-base-200 text-xl">▶</span>
+                    }
+                    else
+                    {
+                        <img src="@slide.Url" alt="" class="h-full w-full object-cover" loading="lazy" />
+                    }
+                </button>
+            }
+        </div>
+    }
+}
+
+@code {
+    /// <summary>One switchable gallery slide: a photo or the item's video.</summary>
+    public sealed record GallerySlide(string Url, bool IsVideo);
+
+    /// <summary>Accessible name used on the main image and the thumbs.</summary>
+    [Parameter, EditorRequired]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Video first (when present), then the ordered photos.</summary>
+    [Parameter, EditorRequired]
+    public List<GallerySlide> Slides { get; set; } = [];
+
+    private int _active;
+
+    private void Show(int index) => _active = index;
+}

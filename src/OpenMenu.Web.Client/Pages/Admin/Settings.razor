@@ -7,7 +7,7 @@
 @inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResource> L
 
-<PageTitle>Settings</PageTitle>
+<PageTitle>@(L["RestaurantSettings"])</PageTitle>
 
 <h1 class="text-2xl font-bold mb-6">@(L["RestaurantSettings"])</h1>
 
@@ -43,7 +43,7 @@
                     {
                         <div class="mt-2 flex items-center gap-3">
                             <img src="@_model.LogoUrl" alt="Logo" class="w-14 h-14 rounded-full object-cover" />
-                            <button type="button" class="btn btn-ghost btn-xs" @onclick="RemoveLogo">Remove logo</button>
+                            <button type="button" class="btn btn-ghost btn-xs" @onclick="RemoveLogo">@(L["RemoveLogo"])</button>
                         </div>
                     }
                 </div>
@@ -70,13 +70,13 @@
                 </div>
 
                 <label class="form-control w-full">
-                    <span class="label-text mb-1">Primary color override (optional)</span>
+                    <span class="label-text mb-1">@(L["PrimaryColorOverride"])</span>
                     <div class="flex items-center gap-3">
                         <input type="color" value="@_primaryColor" @onchange="OnPrimaryColorChanged" class="input input-bordered w-16 p-1" />
-                        <span class="text-sm text-base-content/60">Leave unchanged to keep the theme's primary color.</span>
+                        <span class="text-sm text-base-content/60">@(L["KeepThemeColorHint"])</span>
                         @if (_colorTouched)
                         {
-                            <button type="button" class="btn btn-ghost btn-xs" @onclick="ResetPrimaryColor">Reset</button>
+                            <button type="button" class="btn btn-ghost btn-xs" @onclick="ResetPrimaryColor">@(L["Reset"])</button>
                         }
                     </div>
                 </label>
@@ -130,15 +130,10 @@
 </div>
 
 @code {
-    // Common ISO 4217 codes; kept small on purpose for a single-restaurant app.
+    // Shared list (also offered per translation currency in the item editor).
     // TOMAN is not ISO 4217: Iranian restaurants quote prices in Toman, and the
     // admin is responsible for entering menu prices in the selected unit.
-    private static readonly (string Code, string Name)[] Currencies =
-    [
-        ("USD", "US Dollar"), ("EUR", "Euro"), ("GBP", "British Pound"),
-        ("IRR", "Iranian Rial"), ("TOMAN", "Iranian Toman"), ("TRY", "Turkish Lira"), ("AED", "UAE Dirham"),
-        ("SAR", "Saudi Riyal"), ("IQD", "Iraqi Dinar"),
-    ];
+    private static (string Code, string Name)[] Currencies => CurrencyOptions.All;
 
     // All DaisyUI built-in themes (daisyui.com/docs/themes).
     private static readonly string[] Themes =
@@ -246,7 +241,7 @@
             var result = await Api.UploadImageAsync(ms.ToArray(), e.File.ContentType, e.File.Name);
             if (result is null)
             {
-                _error = "Logo upload failed (only images up to 2 MB are allowed).";
+                _error = L["LogoUploadFailed"].Value;
                 return;
             }
 
@@ -254,7 +249,7 @@
         }
         catch
         {
-            _error = "Logo upload failed (only images up to 2 MB are allowed).";
+            _error = L["LogoUploadFailed"].Value;
         }
     }
 

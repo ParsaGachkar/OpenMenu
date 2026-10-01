@@ -81,8 +81,8 @@ public class MenuItemDetailTests : E2ETestBase
             // IRR price (no cents).
             await WaitForBlazorReadyAsync();
             await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = name })).ToBeVisibleAsync();
-            await Expect(Page.Locator("figure img")).ToBeVisibleAsync();
-            await Expect(Page.Locator("[data-gallery] img")).ToHaveCountAsync(1);
+            await Expect(Page.Locator("[data-gallery-main] img")).ToBeVisibleAsync();
+            await Expect(Page.Locator("[data-gallery-thumbs] [data-thumb]")).ToHaveCountAsync(2);
             var price = await Page.Locator("[data-price]").InnerTextAsync();
             Assert.Contains("ریال", price);
             Assert.DoesNotContain(".00", price);
